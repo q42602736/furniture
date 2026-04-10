@@ -5,11 +5,9 @@
   "description": "多商家入驻家居电商平台",
   "scripts": {
     "dev:web": "pnpm --filter @furniture/web dev",
-    "dev:merchant": "pnpm --filter @furniture/merchant dev",
     "dev:admin": "pnpm --filter @furniture/admin dev",
     "dev:server": "pnpm --filter @furniture/server dev",
     "build:web": "pnpm --filter @furniture/web build",
-    "build:merchant": "pnpm --filter @furniture/merchant build",
     "build:admin": "pnpm --filter @furniture/admin build",
     "build:server": "pnpm --filter @furniture/server build",
     "lint": "pnpm -r lint"

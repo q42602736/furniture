@@ -22,8 +22,7 @@ const app = Fastify({
 await app.register(cors, {
   origin: [
     'http://localhost:3000', // C 端前台
-    'http://localhost:3002', // 商家后台
-    'http://localhost:3003', // 平台后台
+    'http://localhost:3003', // 管理后台
   ],
 })
 
