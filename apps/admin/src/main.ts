@@ -1,15 +1,39 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import { Tooltip } from 'bootstrap'
 import App from './App.vue'
 import router from './router'
+import ElementPlus from 'element-plus'
+import i18n from '@/core/plugins/i18n'
 
-import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap-icons/font/bootstrap-icons.css'
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+// Metronic 核心初始化
+import ApiService from '@/core/services/ApiService'
+import { initApexCharts } from '@/core/plugins/apexcharts'
+import { initInlineSvg } from '@/core/plugins/inline-svg'
+import { initVeeValidate } from '@/core/plugins/vee-validate'
+import { initKtIcon } from '@/core/plugins/keenthemes'
+import '@/core/plugins/prismjs'
+
+// Metronic 样式
+import '@/assets/sass/plugins.scss'
+import '@/assets/sass/style.scss'
 
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+app.use(ElementPlus)
+
+ApiService.init(app)
+initApexCharts(app)
+initInlineSvg(app)
+initKtIcon(app)
+initVeeValidate()
+
+app.use(i18n)
+
+app.directive('tooltip', (el) => {
+  new Tooltip(el)
+})
 
 app.mount('#app')

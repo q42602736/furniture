@@ -16,6 +16,8 @@ export const useAuthStore = defineStore('auth', () => {
   )
 
   const isLoggedIn = computed(() => !!token.value)
+  // 兼容 Metronic 路由守卫使用的 isAuthenticated 名称
+  const isAuthenticated = isLoggedIn
 
   async function login(username: string, password: string) {
     const res: any = await api.post('/admin-auth/login', { username, password })
@@ -32,5 +34,6 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('admin_user')
   }
 
-  return { token, user, isLoggedIn, login, logout }
+  return { token, user, isLoggedIn, isAuthenticated, login, logout }
 })
+

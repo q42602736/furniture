@@ -3,11 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
+    <link rel="stylesheet" href="/splash-screen.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>美家优选 - 平台管理后台</title>
   </head>
-  <body>
+  <body class="page-loading">
+    <!--begin::主题模式初始化-->
+    <script>
+      let themeMode = "light";
+      if (localStorage.getItem("kt_theme_mode_value")) {
+        themeMode = localStorage.getItem("kt_theme_mode_value");
+      }
+      if (themeMode === "system") {
+        themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-bs-theme", themeMode);
+    </script>
+    <!--end::主题模式初始化-->
     <div id="app"></div>
+    <!--begin::加载屏-->
+    <div id="splash-screen" class="splash-screen">
+      <span class="loading-text">美家优选 加载中...</span>
+      <div class="loader-wrapper">
+        <span class="loader"></span>
+      </div>
+    </div>
+    <!--end::加载屏-->
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

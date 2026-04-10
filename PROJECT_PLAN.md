@@ -202,26 +202,38 @@ Monorepo (pnpm workspace)
 ### 第一阶段：项目初始化 & 基础框架
 
 - [x] 项目计划书编写
-- [ ] Monorepo 初始化（pnpm workspace）
-- [ ] 后端基础框架搭建（Fastify + Prisma + MySQL 连接）
-- [ ] 数据库 Schema 设计 & 迁移
-- [ ] 用户认证模块（JWT 注册/登录）
-- [ ] C 端 Nuxt 3 项目初始化
-- [ ] 商家后台 Vue 3 + Metronic 项目初始化
-- [ ] 平台后台 Vue 3 + Metronic 项目初始化
+- [x] Monorepo 初始化（pnpm workspace + pnpm v10）
+- [x] 后端基础框架搭建（Fastify 5 + Prisma + MySQL 连接）
+- [x] 数据库 Schema 设计 & 迁移（用户/商品/分类/订单/Banner 等完整表结构）
+- [x] 用户认证模块（JWT 注册/登录，含管理员 Admin 认证）
+- [x] C 端 Nuxt 3 项目初始化
+- [ ] 商家后台 Vue 3 + Metronic 项目初始化（暂缓，已简化为平台自运营）
+- [x] 平台后台 Vue 3 + Metronic Vue 8.2.6 Demo1 集成完成
+
+### 第一阶段补充：基础设施
+
+- [x] Docker Compose 本地开发环境（MySQL 8.0 + Redis 7）
+- [x] `pnpm dev` 一键启动三个服务（concurrently）
+- [x] 生产 Docker Compose（`--profile prod`，含 Nginx 反向代理）
 
 ### 第二阶段：核心业务
 
-- [ ] 商品分类 CRUD（后端 API + 平台后台页面）
-- [ ] 商品管理 CRUD（后端 API + 商家后台页面）
-- [ ] C 端首页（分类导航 + Banner + 商品列表）
-- [ ] C 端商品详情页
-- [ ] C 端搜索功能
+- [x] 商品分类 CRUD（后端 API + 平台后台页面）
+- [x] 商品管理 CRUD（后端 API + 平台后台页面）
+- [x] 订单管理（后端 API + 平台后台页面）
+- [x] 用户管理（后端 API + 平台后台页面）
+- [x] Banner 管理（后端 API + 平台后台页面）
+- [x] 平台统计看板（用户数/商品数/订单数）
+- [x] C 端首页（分类导航 + Banner + 商品推荐列表）
+- [x] C 端商品详情页
+- [x] C 端搜索功能
+- [x] C 端分类浏览页
+- [x] C 端品牌馆页面
 
 ### 第三阶段：交易闭环
 
-- [ ] 购物车功能
-- [ ] 订单创建 & 管理
+- [x] 购物车功能（含登录态同步）
+- [x] 订单创建（后端 API + C 端结算页）
 - [ ] 支付集成（微信/支付宝）
 - [ ] 物流发货
 - [ ] 售后退款
@@ -229,7 +241,6 @@ Monorepo (pnpm workspace)
 ### 第四阶段：运营 & 完善
 
 - [ ] 商品评价 & 买家秀
-- [ ] 品牌馆
 - [ ] 数据报表（销售/退货/物流）
 - [ ] 性能优化 & SEO 优化
 - [ ] 上线部署
@@ -274,5 +285,76 @@ Vue 3 版本（实际使用）：
 
 ---
 
-> **文档版本**：v1.0  
-> **下次更新**：项目初始化完成后同步更新开发进度
+## 八、管理后台 Metronic 集成实现记录
+
+### 选型决策
+
+- **使用版本**：Metronic 8.2.6 Vue Demo 1
+- **主题风格**：深色侧边栏（dark-sidebar），主色调 `#50CD89`（绿色）
+- **参考源码路径**：`/Volumes/系统/Metronic/Metronic 8.2.6/vue/metronic/vue/metronic_vue_v8.2.6_demo1/`
+
+### 集成方案
+
+将 Metronic Demo1 核心目录整体迁入 `apps/admin/src/`，保留原有业务逻辑页面：
+
+```
+apps/admin/src/
+├── core/           # 从 Metronic 复制：ApiService、JwtService、LayoutService、plugins
+├── layouts/        # 从 Metronic 复制：DefaultLayout（含 Header、Sidebar、Toolbar、Footer）
+│   └── default-layout/
+│       ├── DefaultLayout.vue
+│       ├── components/       # header/sidebar/toolbar/footer/drawers/modals 等
+│       └── config/
+│           ├── DefaultLayoutConfig.ts   # layout: "dark-sidebar", primaryColor: "#50CD89"
+│           └── MainMenuConfig.ts        # 已替换为中文 7 页菜单
+├── assets/
+│   ├── keenicons/  # KeenThemes 图标字体
+│   ├── sass/       # Metronic 全量 SCSS（style.scss + plugins.scss）
+│   └── ts/         # KeenThemes 原生 TS 组件（Drawer、Menu、Scroll 等）
+├── stores/
+│   ├── auth.ts     # 自定义：localStorage token 管理，已添加 isAuthenticated 别名
+│   ├── config.ts   # Metronic：布局配置 store
+│   ├── body.ts     # Metronic：body class 管理
+│   └── theme.ts    # Metronic：主题模式管理（light/dark）
+└── views/          # 保留原有 8 个业务页面（使用标准 Bootstrap 5 类，兼容 Metronic）
+```
+
+### 路由结构
+
+```
+/               → 重定向到 /dashboard
+/dashboard      → 平台总览（DefaultLayout 包裹）
+/products       → 商品管理
+/categories     → 分类管理
+/orders         → 订单管理
+/users          → 用户管理
+/banners        → Banner 管理
+/settings       → 系统设置
+/sign-in        → 登录页（独立，不在 DefaultLayout 内）
+```
+
+### 新增依赖
+
+| 包名 | 版本 | 用途 |
+|------|------|------|
+| vue-i18n | 9.2.2 | Metronic 多语言支持 |
+| line-awesome | ^1.3.0 | 图标库 |
+| socicon | ^3.0.5 | 社交图标 |
+| @fortawesome/fontawesome-free | ^6.7.2 | FontAwesome 图标 |
+| animate.css | ^4.1.1 | 动画库 |
+| prismjs | ^1.30.0 | 代码高亮 |
+| clipboard | ^2.0.11 | 剪贴板操作 |
+| vee-validate | ^4.5.11 | 表单验证 |
+| yup | ^1.2.0 | Schema 验证 |
+
+### 注意事项
+
+- `apps/admin/src/core/api.ts` 为自定义 axios 实例，所有业务请求使用此实例（非 Metronic ApiService）
+- `admin_token` 存储 key 与 Metronic 默认 `id_token` 不同，两者互不影响
+- `AuthLayout.vue` 已保留但未使用（登录页为独立路由，自带两栏布局）
+- 业务页面使用 Bootstrap 5 原生类，与 Metronic SCSS 完全兼容，无需特殊改造
+
+---
+
+> **文档版本**：v1.1（已完成前两阶段核心功能）  
+> **下次更新**：完成支付集成后同步更新
