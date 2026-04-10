@@ -80,6 +80,31 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/system/Settings.vue'),
         meta: { pageTitle: '系统设置', breadcrumbs: ['系统', '系统设置'] },
       },
+      // 报表
+      {
+        path: '/reports/sales',
+        name: 'report-sales',
+        component: () => import('@/views/ecommerce/SalesReport.vue'),
+        meta: { pageTitle: '销售报表', breadcrumbs: ['报表', '销售报表'] },
+      },
+      {
+        path: '/reports/customers',
+        name: 'report-customers',
+        component: () => import('@/views/ecommerce/CustomerOrdersReport.vue'),
+        meta: { pageTitle: '客户订单报表', breadcrumbs: ['报表', '客户订单报表'] },
+      },
+      {
+        path: '/reports/shipping',
+        name: 'report-shipping',
+        component: () => import('@/views/ecommerce/ShippingReport.vue'),
+        meta: { pageTitle: '物流报表', breadcrumbs: ['报表', '物流报表'] },
+      },
+      {
+        path: '/reports/returns',
+        name: 'report-returns',
+        component: () => import('@/views/ecommerce/ReturnsReport.vue'),
+        meta: { pageTitle: '退货报表', breadcrumbs: ['报表', '退货报表'] },
+      },
     ],
   },
   {

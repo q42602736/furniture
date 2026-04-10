@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import * as adminService from '../services/admin.service.js'
+import * as reportService from '../services/report.service.js'
 import { success, paginated } from '../utils/response.js'
 import { validate } from '../utils/validate.js'
 import { paginationSchema } from '../utils/pagination.js'
@@ -28,6 +29,12 @@ export default async function adminRoutes(app: FastifyInstance) {
     )
     const { list, total } = await adminService.getUserList(params.page, params.pageSize, params.keyword)
     return paginated(list, total, params.page, params.pageSize)
+  })
+
+  /** GET /api/v1/admin/users/:id — 用户详情 */
+  app.get<{ Params: { id: string } }>('/users/:id', async (request) => {
+    const user = await adminService.getUserDetail(Number(request.params.id))
+    return success(user)
   })
 
   /** PUT /api/v1/admin/users/:id/status — 更新用户状态 */
@@ -63,11 +70,31 @@ export default async function adminRoutes(app: FastifyInstance) {
   /** GET /api/v1/admin/orders — 全平台订单 */
   app.get('/orders', async (request) => {
     const params = validate(
-      paginationSchema.extend({ status: z.coerce.number().int().optional() }),
+      paginationSchema.extend({
+        status: z.coerce.number().int().optional(),
+        keyword: z.string().optional(),
+      }),
       request.query,
     )
-    const { list, total } = await adminService.getAllOrders(params.page, params.pageSize, params.status)
+    const { list, total } = await adminService.getAllOrders(params.page, params.pageSize, params.status, params.keyword)
     return paginated(list, total, params.page, params.pageSize)
+  })
+
+  /** GET /api/v1/admin/orders/:id — 订单详情 */
+  app.get<{ Params: { id: string } }>('/orders/:id', async (request) => {
+    const order = await adminService.getOrderDetail(Number(request.params.id))
+    return success(order)
+  })
+
+  /** PUT /api/v1/admin/orders/:id/status — 更新订单状态 */
+  app.put<{ Params: { id: string } }>('/orders/:id/status', async (request) => {
+    const orderId = Number(request.params.id)
+    const { status } = validate(
+      z.object({ status: z.number().int().min(0).max(5) }),
+      request.body,
+    )
+    await adminService.updateOrderStatus(orderId, status)
+    return success(null, '状态更新成功')
   })
 
   // ========== 商品管理 ==========
@@ -161,5 +188,48 @@ export default async function adminRoutes(app: FastifyInstance) {
   app.delete<{ Params: { id: string } }>('/products/:id', async (request) => {
     await adminService.deleteProduct(Number(request.params.id))
     return success(null, '删除成功')
+  })
+
+  // ========== 报表 ==========
+
+  const reportDateSchema = z.object({
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+  })
+
+  /** GET /api/v1/admin/reports/sales — 销售报表 */
+  app.get('/reports/sales', async (request) => {
+    const params = validate(
+      reportDateSchema.extend({
+        groupBy: z.enum(['day', 'week', 'month']).optional(),
+      }),
+      request.query,
+    )
+    const data = await reportService.getSalesReport(params)
+    return success(data)
+  })
+
+  /** GET /api/v1/admin/reports/customers — 客户订单报表 */
+  app.get('/reports/customers', async (request) => {
+    const params = validate(
+      paginationSchema.merge(reportDateSchema),
+      request.query,
+    )
+    const { list, total } = await reportService.getCustomerOrdersReport(params)
+    return paginated(list, total, params.page, params.pageSize)
+  })
+
+  /** GET /api/v1/admin/reports/shipping — 物流报表 */
+  app.get('/reports/shipping', async (request) => {
+    const params = validate(reportDateSchema, request.query)
+    const data = await reportService.getShippingReport(params.startDate, params.endDate)
+    return success(data)
+  })
+
+  /** GET /api/v1/admin/reports/returns — 退货报表 */
+  app.get('/reports/returns', async (request) => {
+    const params = validate(reportDateSchema, request.query)
+    const data = await reportService.getReturnsReport(params.startDate, params.endDate)
+    return success(data)
   })
 }
