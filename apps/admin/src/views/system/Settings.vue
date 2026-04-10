@@ -1,11 +1,30 @@
 <template>
   <div>
-    <h2>系统设置</h2>
-    <p class="text-muted">对应 Metronic 模板：apps/ecommerce/settings.html</p>
     <div class="card">
+      <div class="card-header">管理员信息</div>
       <div class="card-body">
-        <p class="text-muted">平台配置（待接入后端 API）</p>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">账号</label>
+              <input :value="authStore.user?.username" class="form-control" disabled />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">姓名</label>
+              <input :value="authStore.user?.realName || '-'" class="form-control" disabled />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">角色</label>
+              <input :value="authStore.user?.role" class="form-control" disabled />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useAuthStore } from '@/stores/auth'
+const authStore = useAuthStore()
+</script>

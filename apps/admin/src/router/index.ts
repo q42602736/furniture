@@ -6,6 +6,7 @@ const router = createRouter({
     {
       path: '/',
       component: () => import('@/layouts/AdminLayout.vue'),
+      meta: { requiresAuth: true },
       children: [
         {
           path: '',
@@ -20,7 +21,7 @@ const router = createRouter({
           component: () => import('@/views/merchant/MerchantList.vue'),
           meta: { title: '商家列表' },
         },
-        // 商品审核
+        // 商品管理
         {
           path: 'products',
           name: 'products',
@@ -71,6 +72,18 @@ const router = createRouter({
       meta: { title: '管理员登录' },
     },
   ],
+})
+
+// 路由守卫：未登录跳转登录页
+router.beforeEach((to, _from, next) => {
+  const token = localStorage.getItem('admin_token')
+  if (to.matched.some((r) => r.meta.requiresAuth) && !token) {
+    next({ name: 'login' })
+  } else if (to.name === 'login' && token) {
+    next({ name: 'dashboard' })
+  } else {
+    next()
+  }
 })
 
 export default router

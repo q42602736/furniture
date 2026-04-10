@@ -1,20 +1,35 @@
 <template>
   <div>
-    <h2>平台总览</h2>
-    <p class="text-muted">对应 Metronic 模板：dashboards/ecommerce.html</p>
-    <div class="row g-4 mt-2">
-      <div class="col-md-3">
-        <div class="card"><div class="card-body"><p class="text-muted mb-1">平台 GMV</p><h3>¥0.00</h3></div></div>
-      </div>
-      <div class="col-md-3">
-        <div class="card"><div class="card-body"><p class="text-muted mb-1">总订单数</p><h3>0</h3></div></div>
-      </div>
-      <div class="col-md-3">
-        <div class="card"><div class="card-body"><p class="text-muted mb-1">入驻商家</p><h3>0</h3></div></div>
-      </div>
-      <div class="col-md-3">
-        <div class="card"><div class="card-body"><p class="text-muted mb-1">注册用户</p><h3>0</h3></div></div>
+    <div class="row g-4">
+      <div class="col-md-3" v-for="item in statCards" :key="item.label">
+        <div class="card">
+          <div class="card-body">
+            <p class="text-muted mb-1">{{ item.label }}</p>
+            <h3>{{ item.value }}</h3>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import api from '@/core/api'
+
+const stats = ref({ userCount: 0, merchantCount: 0, productCount: 0, orderCount: 0 })
+
+const statCards = computed(() => [
+  { label: '注册用户', value: stats.value.userCount },
+  { label: '入驻商家', value: stats.value.merchantCount },
+  { label: '上架商品', value: stats.value.productCount },
+  { label: '总订单数', value: stats.value.orderCount },
+])
+
+onMounted(async () => {
+  try {
+    const res: any = await api.get('/admin/stats')
+    stats.value = res.data
+  } catch {}
+})
+</script>

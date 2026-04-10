@@ -11,6 +11,8 @@ import bannerRoutes from './routes/banner.routes.js'
 import merchantRoutes from './routes/merchant.routes.js'
 import addressRoutes from './routes/address.routes.js'
 import favoriteRoutes from './routes/favorite.routes.js'
+import adminAuthRoutes from './routes/admin-auth.routes.js'
+import adminRoutes from './routes/admin.routes.js'
 
 const app = Fastify({
   logger: true,
@@ -52,6 +54,8 @@ app.get('/api/v1', async () => {
       merchants: '/api/v1/merchants',
       addresses: '/api/v1/addresses',
       favorites: '/api/v1/favorites',
+      adminAuth: '/api/v1/admin-auth',
+      admin: '/api/v1/admin',
     },
   }
 })
@@ -66,6 +70,8 @@ await app.register(bannerRoutes, { prefix: '/api/v1/banners' })
 await app.register(merchantRoutes, { prefix: '/api/v1/merchants' })
 await app.register(addressRoutes, { prefix: '/api/v1/addresses' })
 await app.register(favoriteRoutes, { prefix: '/api/v1/favorites' })
+await app.register(adminAuthRoutes, { prefix: '/api/v1/admin-auth' })
+await app.register(adminRoutes, { prefix: '/api/v1/admin' })
 
 // 启动服务
 const start = async () => {

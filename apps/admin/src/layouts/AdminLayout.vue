@@ -7,29 +7,10 @@
         <small class="text-muted">平台管理后台</small>
       </div>
       <nav class="mt-3">
-        <router-link to="/" class="nav-link text-white px-4 py-2 d-block">
-          📊 平台总览
-        </router-link>
-        <router-link to="/merchants" class="nav-link text-white px-4 py-2 d-block">
-          🏪 商家管理
-        </router-link>
-        <router-link to="/products" class="nav-link text-white px-4 py-2 d-block">
-          📦 商品管理
-        </router-link>
-        <router-link to="/categories" class="nav-link text-white px-4 py-2 d-block">
-          📁 分类管理
-        </router-link>
-        <router-link to="/orders" class="nav-link text-white px-4 py-2 d-block">
-          📋 订单管理
-        </router-link>
-        <router-link to="/users" class="nav-link text-white px-4 py-2 d-block">
-          👤 用户管理
-        </router-link>
-        <router-link to="/banners" class="nav-link text-white px-4 py-2 d-block">
-          🖼️ Banner 管理
-        </router-link>
-        <router-link to="/settings" class="nav-link text-white px-4 py-2 d-block">
-          ⚙️ 系统设置
+        <router-link v-for="menu in menus" :key="menu.path" :to="menu.path"
+          class="nav-link px-4 py-2 d-block"
+          :class="{ 'text-white': !isActive(menu.path), 'bg-primary text-white': isActive(menu.path) }">
+          {{ menu.icon }} {{ menu.label }}
         </router-link>
       </nav>
     </aside>
@@ -39,13 +20,43 @@
       <header class="bg-white shadow-sm px-4 py-3 d-flex align-items-center justify-content-between">
         <h5 class="mb-0">{{ $route.meta.title }}</h5>
         <div>
-          <span class="me-3">超级管理员</span>
-          <button class="btn btn-sm btn-outline-secondary">退出</button>
+          <span class="me-3">{{ authStore.user?.realName || authStore.user?.username || '管理员' }}</span>
+          <button class="btn btn-sm btn-outline-secondary" @click="handleLogout">退出</button>
         </div>
       </header>
-      <main class="p-4">
+      <main class="p-4 bg-light" style="min-height: calc(100vh - 60px);">
         <router-view />
       </main>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
+const menus = [
+  { path: '/', icon: '📊', label: '平台总览' },
+  { path: '/merchants', icon: '🏪', label: '商家管理' },
+  { path: '/products', icon: '📦', label: '商品管理' },
+  { path: '/categories', icon: '📁', label: '分类管理' },
+  { path: '/orders', icon: '📋', label: '订单管理' },
+  { path: '/users', icon: '👤', label: '用户管理' },
+  { path: '/banners', icon: '🖼️', label: 'Banner 管理' },
+  { path: '/settings', icon: '⚙️', label: '系统设置' },
+]
+
+function isActive(path: string) {
+  if (path === '/') return route.path === '/'
+  return route.path.startsWith(path)
+}
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
+</script>
