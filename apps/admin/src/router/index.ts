@@ -118,6 +118,20 @@ const routes: Array<RouteRecordRaw> = [
     path: '/login',
     redirect: '/sign-in',
   },
+  // 500 错误页
+  {
+    path: '/500',
+    name: 'error-500',
+    component: () => import('@/views/auth/Error500.vue'),
+    meta: { pageTitle: '系统错误' },
+  },
+  // 404 兜底路由（必须放最后）
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'error-404',
+    component: () => import('@/views/auth/Error404.vue'),
+    meta: { pageTitle: '页面未找到' },
+  },
 ]
 
 const router = createRouter({
