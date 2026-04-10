@@ -65,9 +65,9 @@
             </tr>
             <tr v-for="item in list" :key="item.id">
               <td>
-                <a href="javascript:;" class="text-gray-800 text-hover-primary fw-bold" @click="viewDetail(item.id)">
+                <router-link :to="`/orders/${item.id}`" class="text-gray-800 text-hover-primary fw-bold">
                   {{ item.orderNo }}
-                </a>
+                </router-link>
               </td>
               <td>{{ item.user?.nickname || item.user?.phone || '-' }}</td>
               <td class="text-end pe-0">
@@ -95,7 +95,7 @@
                   data-kt-menu="true"
                 >
                   <div class="menu-item px-3">
-                    <a href="javascript:;" class="menu-link px-3" @click="viewDetail(item.id)">查看详情</a>
+                    <router-link :to="`/orders/${item.id}`" class="menu-link px-3">查看详情</router-link>
                   </div>
                   <div v-if="item.status === 1" class="menu-item px-3">
                     <a href="javascript:;" class="menu-link px-3 text-success" @click="shipOrder(item.id)">确认发货</a>
@@ -141,117 +141,12 @@
       <!--end::卡片内容-->
     </div>
     <!--end::订单列表卡片-->
-
-    <!--begin::订单详情弹窗-->
-    <div class="modal fade" ref="detailModalRef" tabindex="-1">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">订单详情</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body" v-if="detailOrder">
-            <!--begin::基本信息-->
-            <div class="row mb-6">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <span class="text-muted fs-7 d-block mb-1">订单号</span>
-                  <span class="fw-bold text-gray-800">{{ detailOrder.orderNo }}</span>
-                </div>
-                <div class="mb-3">
-                  <span class="text-muted fs-7 d-block mb-1">状态</span>
-                  <div :class="`badge badge-light-${orderStatusColor(detailOrder.status)}`">
-                    {{ orderStatusText(detailOrder.status) }}
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <span class="text-muted fs-7 d-block mb-1">下单时间</span>
-                  <span class="fw-semibold text-gray-600">{{ formatTime(detailOrder.createdAt) }}</span>
-                </div>
-                <div v-if="detailOrder.paidAt" class="mb-3">
-                  <span class="text-muted fs-7 d-block mb-1">支付时间</span>
-                  <span class="fw-semibold text-gray-600">{{ formatTime(detailOrder.paidAt) }}</span>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <span class="text-muted fs-7 d-block mb-1">买家</span>
-                  <span class="fw-bold text-gray-800">{{ detailOrder.user?.nickname || detailOrder.user?.phone || '-' }}</span>
-                </div>
-                <div class="mb-3">
-                  <span class="text-muted fs-7 d-block mb-1">收货人</span>
-                  <span class="fw-semibold text-gray-600">{{ detailOrder.receiverName }} {{ detailOrder.receiverPhone }}</span>
-                </div>
-                <div class="mb-3">
-                  <span class="text-muted fs-7 d-block mb-1">地址</span>
-                  <span class="fw-semibold text-gray-600">{{ detailOrder.receiverAddr }}</span>
-                </div>
-                <div v-if="detailOrder.remark" class="mb-3">
-                  <span class="text-muted fs-7 d-block mb-1">备注</span>
-                  <span class="fw-semibold text-gray-600">{{ detailOrder.remark }}</span>
-                </div>
-              </div>
-            </div>
-            <!--end::基本信息-->
-            <div class="separator my-5"></div>
-            <!--begin::商品列表-->
-            <table class="table align-middle table-row-dashed fs-6 gy-4">
-              <thead>
-                <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
-                  <th>商品</th>
-                  <th>规格</th>
-                  <th class="text-end">单价</th>
-                  <th class="text-end">数量</th>
-                  <th class="text-end">小计</th>
-                </tr>
-              </thead>
-              <tbody class="fw-semibold text-gray-600">
-                <tr v-for="item in detailOrder.items" :key="item.id">
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <a v-if="item.image" class="symbol symbol-40px me-3">
-                        <span class="symbol-label" :style="{ backgroundImage: `url(${item.image})` }"></span>
-                      </a>
-                      <span>{{ item.name }}</span>
-                    </div>
-                  </td>
-                  <td>{{ item.sku?.name || '-' }}</td>
-                  <td class="text-end">¥{{ item.price }}</td>
-                  <td class="text-end">{{ item.quantity }}</td>
-                  <td class="text-end text-danger fw-bold">¥{{ (Number(item.price) * item.quantity).toFixed(2) }}</td>
-                </tr>
-              </tbody>
-            </table>
-            <!--end::商品列表-->
-            <div class="d-flex justify-content-end gap-5 mt-4">
-              <span class="text-gray-600">总金额：<strong class="text-gray-800">¥{{ detailOrder.totalAmount }}</strong></span>
-              <span class="text-gray-600">实付：<strong class="text-danger">¥{{ detailOrder.payAmount }}</strong></span>
-            </div>
-          </div>
-          <div class="modal-footer" v-if="detailOrder">
-            <button v-if="detailOrder.status === 1" class="btn btn-success" @click="shipOrder(detailOrder.id); detailModal?.hide()">
-              <KTIcon icon-name="delivery" icon-class="fs-4 me-1" />
-              确认发货
-            </button>
-            <button v-if="detailOrder.status === 2" class="btn btn-primary" @click="completeOrder(detailOrder.id); detailModal?.hide()">
-              <KTIcon icon-name="check" icon-class="fs-4 me-1" />
-              确认完成
-            </button>
-            <button v-if="[0,1].includes(detailOrder.status)" class="btn btn-danger" @click="cancelOrder(detailOrder.id); detailModal?.hide()">取消订单</button>
-            <button class="btn btn-light" data-bs-dismiss="modal">关闭</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!--end::订单详情弹窗-->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '@/core/api'
-
-declare const bootstrap: any
 
 const list = ref<any[]>([])
 const total = ref(0)
@@ -276,11 +171,6 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 详情弹窗
-const detailModalRef = ref<HTMLElement>()
-const detailOrder = ref<any>(null)
-let detailModal: any = null
-
 const statusMap: Record<number, string> = { 0: '待付款', 1: '待发货', 2: '待收货', 3: '已完成', 4: '已取消', 5: '售后中' }
 const statusColorMap: Record<number, string> = { 0: 'warning', 1: 'info', 2: 'primary', 3: 'success', 4: 'secondary', 5: 'danger' }
 
@@ -303,29 +193,10 @@ async function loadData(p = 1) {
   }
 }
 
-async function viewDetail(id: number) {
-  try {
-    const res: any = await api.get(`/admin/orders/${id}`)
-    detailOrder.value = res.data
-    nextTick(() => {
-      if (!detailModal) detailModal = new bootstrap.Modal(detailModalRef.value)
-      detailModal.show()
-    })
-  } catch {}
-}
-
 async function shipOrder(id: number) {
   if (!confirm('确认发货？')) return
   try {
     await api.put(`/admin/orders/${id}/status`, { status: 2 })
-    await loadData(page.value)
-  } catch {}
-}
-
-async function completeOrder(id: number) {
-  if (!confirm('确认完成该订单？')) return
-  try {
-    await api.put(`/admin/orders/${id}/status`, { status: 3 })
     await loadData(page.value)
   } catch {}
 }

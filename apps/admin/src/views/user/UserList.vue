@@ -78,7 +78,7 @@
                   data-kt-menu="true"
                 >
                   <div class="menu-item px-3">
-                    <a href="javascript:;" class="menu-link px-3" @click="viewDetail(item.id)">查看详情</a>
+                    <router-link :to="`/users/${item.id}`" class="menu-link px-3">查看详情</router-link>
                   </div>
                   <div class="menu-item px-3">
                     <a
@@ -130,108 +130,12 @@
       <!--end::卡片内容-->
     </div>
     <!--end::用户列表卡片-->
-
-    <!--begin::用户详情弹窗-->
-    <div class="modal fade" ref="detailModalRef" tabindex="-1">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">用户详情</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body" v-if="detailUser">
-            <!--begin::用户信息-->
-            <div class="d-flex align-items-center mb-6">
-              <div class="symbol symbol-50px me-4">
-                <span v-if="detailUser.avatar" class="symbol-label" :style="{ backgroundImage: `url(${detailUser.avatar})` }"></span>
-                <span v-else class="symbol-label bg-light-primary fs-2 fw-bold text-primary">
-                  {{ (detailUser.nickname || 'U')[0].toUpperCase() }}
-                </span>
-              </div>
-              <div class="flex-grow-1">
-                <span class="text-gray-800 fs-4 fw-bold">{{ detailUser.nickname || '-' }}</span>
-                <div class="text-muted fs-7">{{ detailUser.phone }} · 注册于 {{ new Date(detailUser.createdAt).toLocaleDateString('zh-CN') }}</div>
-              </div>
-              <div :class="`badge badge-light-${detailUser.status === 1 ? 'success' : 'danger'}`">
-                {{ detailUser.status === 1 ? '正常' : '禁用' }}
-              </div>
-            </div>
-            <!--end::用户信息-->
-            <!--begin::统计-->
-            <div class="row g-4 mb-6">
-              <div class="col-6">
-                <div class="border border-dashed border-gray-300 rounded py-3 px-4 text-center">
-                  <div class="fs-2hx fw-bold text-gray-900">{{ detailUser._count?.orders || 0 }}</div>
-                  <div class="fw-semibold text-muted fs-7">订单数</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="border border-dashed border-gray-300 rounded py-3 px-4 text-center">
-                  <div class="fs-2hx fw-bold text-gray-900">{{ detailUser._count?.favorites || 0 }}</div>
-                  <div class="fw-semibold text-muted fs-7">收藏数</div>
-                </div>
-              </div>
-            </div>
-            <!--end::统计-->
-            <div class="separator my-5"></div>
-            <!--begin::收货地址-->
-            <h6 class="fw-bold text-gray-800 mb-3">收货地址</h6>
-            <table v-if="detailUser.addresses?.length" class="table align-middle table-row-dashed fs-6 gy-4 mb-6">
-              <thead>
-                <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
-                  <th>收货人</th><th>电话</th><th>地址</th><th class="text-end">默认</th>
-                </tr>
-              </thead>
-              <tbody class="fw-semibold text-gray-600">
-                <tr v-for="addr in detailUser.addresses" :key="addr.id">
-                  <td>{{ addr.name }}</td>
-                  <td>{{ addr.phone }}</td>
-                  <td>{{ addr.province }}{{ addr.city }}{{ addr.district }}{{ addr.address }}</td>
-                  <td class="text-end">
-                    <div v-if="addr.isDefault" class="badge badge-light-primary">默认</div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <p v-else class="text-muted mb-6">暂无收货地址</p>
-            <!--end::收货地址-->
-            <!--begin::最近订单-->
-            <h6 class="fw-bold text-gray-800 mb-3">最近订单</h6>
-            <table v-if="detailUser.orders?.length" class="table align-middle table-row-dashed fs-6 gy-4">
-              <thead>
-                <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
-                  <th>订单号</th><th class="text-end">金额</th><th class="text-end">状态</th><th class="text-end">时间</th>
-                </tr>
-              </thead>
-              <tbody class="fw-semibold text-gray-600">
-                <tr v-for="order in detailUser.orders" :key="order.id">
-                  <td class="fw-bold text-gray-800">{{ order.orderNo }}</td>
-                  <td class="text-end text-danger">¥{{ order.totalAmount }}</td>
-                  <td class="text-end">
-                    <div :class="`badge badge-light-${orderStatusColor(order.status)}`">{{ orderStatusText(order.status) }}</div>
-                  </td>
-                  <td class="text-end">{{ new Date(order.createdAt).toLocaleString('zh-CN') }}</td>
-                </tr>
-              </tbody>
-            </table>
-            <p v-else class="text-muted">暂无订单</p>
-            <!--end::最近订单-->
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-light" data-bs-dismiss="modal">关闭</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!--end::用户详情弹窗-->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '@/core/api'
-
-declare const bootstrap: any
 
 const list = ref<any[]>([])
 const total = ref(0)
@@ -255,14 +159,6 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 详情弹窗
-const detailModalRef = ref<HTMLElement>()
-const detailUser = ref<any>(null)
-let detailModal: any = null
-
-const statusMap: Record<number, string> = { 0: '待付款', 1: '待发货', 2: '待收货', 3: '已完成', 4: '已取消', 5: '售后中' }
-const statusColorMap: Record<number, string> = { 0: 'warning', 1: 'info', 2: 'primary', 3: 'success', 4: 'secondary', 5: 'danger' }
-
 function orderStatusText(s: number) { return statusMap[s] || '未知' }
 function orderStatusColor(s: number) { return statusColorMap[s] || 'secondary' }
 
@@ -284,17 +180,6 @@ async function setStatus(id: number, status: number) {
   try {
     await api.put(`/admin/users/${id}/status`, { status })
     await loadData(page.value)
-  } catch {}
-}
-
-async function viewDetail(id: number) {
-  try {
-    const res: any = await api.get(`/admin/users/${id}`)
-    detailUser.value = res.data
-    nextTick(() => {
-      if (!detailModal) detailModal = new bootstrap.Modal(detailModalRef.value)
-      detailModal.show()
-    })
   } catch {}
 }
 

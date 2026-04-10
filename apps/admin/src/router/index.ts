@@ -21,6 +21,18 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/ecommerce/ProductList.vue'),
         meta: { pageTitle: '商品管理', breadcrumbs: ['电商管理', '商品管理'] },
       },
+      {
+        path: '/products/add',
+        name: 'product-add',
+        component: () => import('@/views/ecommerce/ProductForm.vue'),
+        meta: { pageTitle: '新增商品', breadcrumbs: ['电商管理', '商品管理', '新增商品'] },
+      },
+      {
+        path: '/products/:id/edit',
+        name: 'product-edit',
+        component: () => import('@/views/ecommerce/ProductForm.vue'),
+        meta: { pageTitle: '编辑商品', breadcrumbs: ['电商管理', '商品管理', '编辑商品'] },
+      },
       // 分类管理
       {
         path: '/categories',
@@ -35,12 +47,24 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/ecommerce/OrderList.vue'),
         meta: { pageTitle: '订单管理', breadcrumbs: ['电商管理', '订单管理'] },
       },
+      {
+        path: '/orders/:id',
+        name: 'order-detail',
+        component: () => import('@/views/ecommerce/OrderDetail.vue'),
+        meta: { pageTitle: '订单详情', breadcrumbs: ['电商管理', '订单管理', '订单详情'] },
+      },
       // 用户管理
       {
         path: '/users',
         name: 'users',
         component: () => import('@/views/user/UserList.vue'),
         meta: { pageTitle: '用户管理', breadcrumbs: ['用户与内容', '用户管理'] },
+      },
+      {
+        path: '/users/:id',
+        name: 'user-detail',
+        component: () => import('@/views/user/UserDetail.vue'),
+        meta: { pageTitle: '用户详情', breadcrumbs: ['用户与内容', '用户管理', '用户详情'] },
       },
       // Banner 管理
       {

@@ -31,10 +31,10 @@
               <option value="0">下架</option>
             </select>
           </div>
-          <button class="btn btn-primary" @click="openAdd">
+          <router-link to="/products/add" class="btn btn-primary">
             <KTIcon icon-name="plus" icon-class="fs-2" />
             新增商品
-          </button>
+          </router-link>
         </div>
         <!--end::工具栏-->
       </div>
@@ -117,10 +117,10 @@
                   data-kt-menu="true"
                 >
                   <div class="menu-item px-3">
-                    <a href="javascript:;" class="menu-link px-3" @click="openEdit(item)">编辑</a>
+                    <router-link :to="`/products/${item.id}/edit`" class="menu-link px-3">编辑</router-link>
                   </div>
                   <div class="menu-item px-3">
-                    <a href="javascript:;" class="menu-link px-3" @click="openImages(item)">图片管理</a>
+                    <router-link :to="`/products/${item.id}/edit`" class="menu-link px-3">图片管理</router-link>
                   </div>
                   <div class="menu-item px-3">
                     <a
@@ -177,158 +177,12 @@
       <!--end::卡片内容-->
     </div>
     <!--end::商品列表卡片-->
-
-    <!--begin::编辑弹窗-->
-    <div class="modal fade" ref="editModalRef" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">编辑商品</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-5">
-              <label class="form-label required">商品名称</label>
-              <input v-model="editForm.name" class="form-control form-control-solid" />
-            </div>
-            <div class="row mb-5">
-              <div class="col-6">
-                <label class="form-label required">价格</label>
-                <input v-model.number="editForm.price" type="number" step="0.01" class="form-control form-control-solid" />
-              </div>
-              <div class="col-6">
-                <label class="form-label">原价</label>
-                <input v-model.number="editForm.originalPrice" type="number" step="0.01" class="form-control form-control-solid" />
-              </div>
-            </div>
-            <div class="mb-5">
-              <label class="form-label">描述</label>
-              <textarea v-model="editForm.description" class="form-control form-control-solid" rows="3"></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-light" data-bs-dismiss="modal">取消</button>
-            <button class="btn btn-primary" :disabled="saving" @click="saveEdit">
-              <span v-if="saving" class="spinner-border spinner-border-sm align-middle me-1"></span>
-              {{ saving ? '保存中...' : '保存' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!--end::编辑弹窗-->
-
-    <!--begin::图片管理弹窗-->
-    <div class="modal fade" ref="imageModalRef" tabindex="-1">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">管理图片 — {{ imageProduct?.name }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="row g-4">
-              <div class="col-md-4" v-for="(img, i) in imageList" :key="i">
-                <div class="position-relative border rounded overflow-hidden">
-                  <img :src="img.url" class="w-100" style="height:140px;object-fit:cover" />
-                  <button
-                    class="btn btn-icon btn-sm btn-color-danger btn-active-light-danger position-absolute top-0 end-0 m-2"
-                    @click="imageList.splice(i, 1)"
-                  >
-                    <KTIcon icon-name="cross" icon-class="fs-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="mt-5">
-              <label class="form-label">添加图片URL</label>
-              <div class="input-group">
-                <input v-model="newImageUrl" class="form-control form-control-solid" placeholder="输入图片链接" @keyup.enter="addImage" />
-                <button class="btn btn-primary" @click="addImage">
-                  <KTIcon icon-name="plus" icon-class="fs-4" />
-                  添加
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-light" data-bs-dismiss="modal">取消</button>
-            <button class="btn btn-primary" :disabled="savingImages" @click="saveImages">
-              <span v-if="savingImages" class="spinner-border spinner-border-sm align-middle me-1"></span>
-              {{ savingImages ? '保存中...' : '保存图片' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!--end::图片管理弹窗-->
-
-    <!--begin::新增商品弹窗-->
-    <div class="modal fade" ref="addModalRef" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">新增商品</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-5">
-              <label class="form-label required">商品名称</label>
-              <input v-model="addForm.name" class="form-control form-control-solid" />
-            </div>
-            <div class="row mb-5">
-              <div class="col-6">
-                <label class="form-label required">价格</label>
-                <input v-model.number="addForm.price" type="number" step="0.01" class="form-control form-control-solid" />
-              </div>
-              <div class="col-6">
-                <label class="form-label">原价</label>
-                <input v-model.number="addForm.originalPrice" type="number" step="0.01" class="form-control form-control-solid" />
-              </div>
-            </div>
-            <div class="mb-5">
-              <label class="form-label required">分类</label>
-              <select v-model.number="addForm.categoryId" class="form-select form-select-solid">
-                <option :value="0" disabled>请选择分类</option>
-                <template v-for="cat in categories" :key="cat.id">
-                  <option :value="cat.id">{{ cat.name }}</option>
-                  <option v-for="child in cat.children" :key="child.id" :value="child.id">
-                    &nbsp;&nbsp;└ {{ child.name }}
-                  </option>
-                </template>
-              </select>
-            </div>
-            <div class="mb-5">
-              <label class="form-label required">商家</label>
-              <select v-model.number="addForm.merchantId" class="form-select form-select-solid">
-                <option :value="0" disabled>请选择商家</option>
-                <option v-for="m in merchants" :key="m.id" :value="m.id">{{ m.name }}</option>
-              </select>
-            </div>
-            <div class="mb-5">
-              <label class="form-label">描述</label>
-              <textarea v-model="addForm.description" class="form-control form-control-solid" rows="3"></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-light" data-bs-dismiss="modal">取消</button>
-            <button class="btn btn-primary" :disabled="addSaving" @click="saveAdd">
-              <span v-if="addSaving" class="spinner-border spinner-border-sm align-middle me-1"></span>
-              {{ addSaving ? '创建中...' : '创建商品' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!--end::新增商品弹窗-->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import api from '@/core/api'
-
-declare const bootstrap: any
 
 const list = ref<any[]>([])
 const total = ref(0)
@@ -352,33 +206,6 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 下拉数据
-const categories = ref<any[]>([])
-const merchants = ref<any[]>([])
-
-// 编辑
-const editModalRef = ref<HTMLElement>()
-const editForm = reactive({ id: 0, name: '', price: 0, originalPrice: 0, description: '' })
-const saving = ref(false)
-let editModal: any = null
-
-// 新增商品
-const addModalRef = ref<HTMLElement>()
-const addForm = reactive({
-  name: '', price: 0, originalPrice: 0, description: '',
-  categoryId: 0, merchantId: 0,
-})
-const addSaving = ref(false)
-let addModal: any = null
-
-// 图片
-const imageModalRef = ref<HTMLElement>()
-const imageProduct = ref<any>(null)
-const imageList = ref<{ url: string }[]>([])
-const newImageUrl = ref('')
-const savingImages = ref(false)
-let imageModal: any = null
-
 async function loadData(p = 1) {
   page.value = p
   loading.value = true
@@ -391,63 +218,6 @@ async function loadData(p = 1) {
     total.value = res.data.total
   } catch {} finally {
     loading.value = false
-  }
-}
-
-function openEdit(item: any) {
-  Object.assign(editForm, { id: item.id, name: item.name, price: item.price, originalPrice: item.originalPrice || 0, description: item.description || '' })
-  nextTick(() => {
-    if (!editModal) editModal = new bootstrap.Modal(editModalRef.value)
-    editModal.show()
-  })
-}
-
-async function saveEdit() {
-  saving.value = true
-  try {
-    await api.put(`/admin/products/${editForm.id}`, {
-      name: editForm.name,
-      price: editForm.price,
-      originalPrice: editForm.originalPrice || undefined,
-      description: editForm.description || undefined,
-    })
-    editModal?.hide()
-    await loadData(page.value)
-  } catch {} finally {
-    saving.value = false
-  }
-}
-
-function openImages(item: any) {
-  imageProduct.value = item
-  // 加载商品详情获取完整图片列表
-  api.get(`/admin/products/${item.id}`).then((res: any) => {
-    imageList.value = (res.data.images || []).map((img: any) => ({ url: img.url }))
-  })
-  nextTick(() => {
-    if (!imageModal) imageModal = new bootstrap.Modal(imageModalRef.value)
-    imageModal.show()
-  })
-}
-
-function addImage() {
-  if (newImageUrl.value.trim()) {
-    imageList.value.push({ url: newImageUrl.value.trim() })
-    newImageUrl.value = ''
-  }
-}
-
-async function saveImages() {
-  if (!imageProduct.value) return
-  savingImages.value = true
-  try {
-    await api.put(`/admin/products/${imageProduct.value.id}/images`, {
-      images: imageList.value.map((img, i) => ({ url: img.url, sort: i })),
-    })
-    imageModal?.hide()
-    await loadData(page.value)
-  } catch {} finally {
-    savingImages.value = false
   }
 }
 
@@ -466,49 +236,5 @@ async function handleDelete(id: number) {
   } catch {}
 }
 
-async function loadDropdowns() {
-  try {
-    const [catRes, merRes]: any[] = await Promise.all([
-      api.get('/categories/tree'),
-      api.get('/admin/merchants', { params: { page: 1, pageSize: 100 } }),
-    ])
-    categories.value = catRes.data
-    merchants.value = merRes.data.list
-  } catch {}
-}
-
-function openAdd() {
-  Object.assign(addForm, {
-    name: '', price: 0, originalPrice: 0, description: '',
-    categoryId: 0, merchantId: 0,
-  })
-  nextTick(() => {
-    if (!addModal) addModal = new bootstrap.Modal(addModalRef.value)
-    addModal.show()
-  })
-}
-
-async function saveAdd() {
-  if (!addForm.name || !addForm.price || !addForm.categoryId || !addForm.merchantId) return
-  addSaving.value = true
-  try {
-    await api.post('/admin/products', {
-      name: addForm.name,
-      price: addForm.price,
-      originalPrice: addForm.originalPrice || undefined,
-      description: addForm.description || undefined,
-      categoryId: addForm.categoryId,
-      merchantId: addForm.merchantId,
-    })
-    addModal?.hide()
-    await loadData(1)
-  } catch {} finally {
-    addSaving.value = false
-  }
-}
-
-onMounted(() => {
-  loadData()
-  loadDropdowns()
-})
+onMounted(() => loadData())
 </script>
