@@ -263,83 +263,12 @@ const sortOptions = [
   { label: '新品', value: 'new', sortable: false },
 ]
 
-const categoryMap: Record<string, { name: string; children: { name: string; slug: string }[] }> = {
-  'living-room': {
-    name: '客厅',
-    children: [
-      { name: '沙发', slug: 'sofa' },
-      { name: '茶几', slug: 'coffee-table' },
-      { name: '电视柜', slug: 'tv-cabinet' },
-      { name: '休闲椅', slug: 'lounge-chair' },
-    ],
-  },
-  'bedroom': {
-    name: '卧室',
-    children: [
-      { name: '床', slug: 'bed' },
-      { name: '床头柜', slug: 'nightstand' },
-      { name: '床垫', slug: 'mattress' },
-      { name: '妆台', slug: 'vanity' },
-    ],
-  },
-  'dining-room': {
-    name: '餐厅',
-    children: [
-      { name: '餐桌', slug: 'dining-table' },
-      { name: '餐椅', slug: 'dining-chair' },
-      { name: '餐边柜', slug: 'sideboard' },
-    ],
-  },
-  'study': {
-    name: '书房',
-    children: [
-      { name: '书桌', slug: 'desk' },
-      { name: '书柜', slug: 'bookcase' },
-      { name: '转椅', slug: 'office-chair' },
-    ],
-  },
-  'kids-room': {
-    name: '儿童房',
-    children: [
-      { name: '儿童床', slug: 'kids-bed' },
-      { name: '儿童桌', slug: 'kids-desk' },
-    ],
-  },
-  'lighting': {
-    name: '灯饰',
-    children: [
-      { name: '吊灯', slug: 'chandelier' },
-      { name: '吸顶灯', slug: 'ceiling-light' },
-      { name: 'LED筒/射灯', slug: 'led-spotlight' },
-    ],
-  },
-  'bathroom': {
-    name: '卫浴',
-    children: [
-      { name: '浴室柜', slug: 'bathroom-cabinet' },
-      { name: '马桶', slug: 'toilet' },
-      { name: '花洒', slug: 'shower' },
-    ],
-  },
-  'decor': {
-    name: '家饰家纺',
-    children: [
-      { name: '装饰字画', slug: 'wall-art' },
-      { name: '装饰摆件', slug: 'ornament' },
-      { name: '床品', slug: 'bedding' },
-    ],
-  },
-  'material': {
-    name: '建材电器',
-    children: [
-      { name: '地板', slug: 'flooring' },
-      { name: '烟灶套装', slug: 'range-hood' },
-      { name: '厨盆水槽', slug: 'kitchen-sink' },
-    ],
-  },
-}
+const { getCategoryBySlug } = useCategories()
 
-const categoryInfo = computed(() => categoryMap[slug.value] || { name: '分类', children: [] })
+const categoryInfo = computed(() => {
+  const found = getCategoryBySlug(slug.value)
+  return found || { name: '分类', slug: slug.value, children: [] }
+})
 
 const brands = ['欧瑞仕', '卡琪朵', '慕梵希', '罗曼仕', 'Milantti 米兰蒂', '檀雅居', '诺美帝斯', '歌迪']
 const styles = ['意式极简', '轻奢', '现代简约', '美式', '北欧', '新中式', '法式']

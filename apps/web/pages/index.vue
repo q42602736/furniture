@@ -238,17 +238,8 @@ const brandList = [
   '欧瑞仕', '卡琪朵', '慕梵希', '罗曼仕',
 ]
 
-const mainCategories = [
-  { name: '客厅', slug: 'living-room' },
-  { name: '卧室', slug: 'bedroom' },
-  { name: '餐厅', slug: 'dining-room' },
-  { name: '儿童房', slug: 'kids-room' },
-  { name: '书房', slug: 'study' },
-  { name: '灯饰', slug: 'lighting' },
-  { name: '卫浴', slug: 'bathroom' },
-  { name: '家饰家纺', slug: 'decor' },
-  { name: '建材电器', slug: 'material' },
-]
+const { categories } = useCategories()
+const mainCategories = computed(() => categories.value.map(c => ({ name: c.name, slug: c.slug })))
 
 const categoryFloors = [
   {
