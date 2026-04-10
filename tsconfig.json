@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "paths": {
+      "@furniture/types": ["./packages/types/src/index.ts"],
+      "@furniture/utils": ["./packages/utils/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".output", ".nuxt"]
+}

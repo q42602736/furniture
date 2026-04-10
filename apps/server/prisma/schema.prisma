@@ -1,0 +1,353 @@
+// Prisma Schema - 家居电商平台数据库模型
+// 运行 `pnpm db:generate` 生成客户端
+// 运行 `pnpm db:migrate` 执行迁移
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== 用户体系 ====================
+
+/// 消费者用户
+model User {
+  id        Int      @id @default(autoincrement())
+  phone     String   @unique @db.VarChar(20)
+  password  String   @db.VarChar(255)
+  nickname  String?  @db.VarChar(50)
+  avatar    String?  @db.VarChar(500)
+  status    Int      @default(1) // 1=正常 0=禁用
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  addresses  UserAddress[]
+  orders     Order[]
+  cartItems  CartItem[]
+  reviews    Review[]
+  favorites  Favorite[]
+
+  @@map("users")
+}
+
+/// 收货地址
+model UserAddress {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  name         String   @db.VarChar(50)
+  phone        String   @db.VarChar(20)
+  province     String   @db.VarChar(50)
+  city         String   @db.VarChar(50)
+  district     String   @db.VarChar(50)
+  address      String   @db.VarChar(255)
+  isDefault    Boolean  @default(false) @map("is_default")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_addresses")
+}
+
+/// 商家
+model Merchant {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(100)
+  logo          String?  @db.VarChar(500)
+  description   String?  @db.Text
+  license       String?  @db.VarChar(500) // 营业执照图片
+  contactName   String   @db.VarChar(50) @map("contact_name")
+  contactPhone  String   @db.VarChar(20) @map("contact_phone")
+  status        Int      @default(0) // 0=待审核 1=正常 2=禁用
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  users    MerchantUser[]
+  products Product[]
+  brands   Brand[]
+
+  @@map("merchants")
+}
+
+/// 商家管理员账号
+model MerchantUser {
+  id         Int      @id @default(autoincrement())
+  merchantId Int      @map("merchant_id")
+  username   String   @unique @db.VarChar(50)
+  password   String   @db.VarChar(255)
+  realName   String?  @db.VarChar(50) @map("real_name")
+  role       String   @default("admin") @db.VarChar(20) // admin/operator
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+
+  @@map("merchant_users")
+}
+
+/// 平台管理员
+model Admin {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(50)
+  password  String   @db.VarChar(255)
+  realName  String?  @db.VarChar(50) @map("real_name")
+  role      String   @default("admin") @db.VarChar(20) // super_admin/admin
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admins")
+}
+
+// ==================== 商品体系 ====================
+
+/// 商品分类（多级）
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(50)
+  slug      String   @unique @db.VarChar(100)
+  icon      String?  @db.VarChar(500)
+  parentId  Int?     @map("parent_id")
+  sort      Int      @default(0)
+  status    Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  parent   Category?  @relation("CategoryParent", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryParent")
+  products Product[]
+
+  @@map("categories")
+}
+
+/// 品牌
+model Brand {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  logo       String?  @db.VarChar(500)
+  merchantId Int      @map("merchant_id")
+  sort       Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  merchant Merchant  @relation(fields: [merchantId], references: [id])
+  products Product[]
+
+  @@map("brands")
+}
+
+/// 商品主表
+model Product {
+  id          Int      @id @default(autoincrement())
+  merchantId  Int      @map("merchant_id")
+  categoryId  Int      @map("category_id")
+  brandId     Int?     @map("brand_id")
+  name        String   @db.VarChar(200)
+  description String?  @db.Text
+  content     String?  @db.LongText // 商品详情富文本
+  mainImage   String?  @db.VarChar(500) @map("main_image")
+  status      Int      @default(0) // 0=草稿 1=在售 2=已下架
+  sort        Int      @default(0)
+  salesCount  Int      @default(0) @map("sales_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  merchant   Merchant       @relation(fields: [merchantId], references: [id])
+  category   Category       @relation(fields: [categoryId], references: [id])
+  brand      Brand?         @relation(fields: [brandId], references: [id])
+  skus       ProductSku[]
+  images     ProductImage[]
+  attributes ProductAttribute[]
+  orderItems OrderItem[]
+  reviews    Review[]
+  favorites  Favorite[]
+  cartItems  CartItem[]
+
+  @@map("products")
+}
+
+/// 商品 SKU
+model ProductSku {
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("product_id")
+  name      String   @db.VarChar(200) // 规格名称，如 "白色 / 1.8m"
+  price     Decimal  @db.Decimal(10, 2)
+  stock     Int      @default(0)
+  image     String?  @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product    Product     @relation(fields: [productId], references: [id])
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+
+  @@map("product_skus")
+}
+
+/// 商品图片
+model ProductImage {
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("product_id")
+  url       String   @db.VarChar(500)
+  sort      Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("product_images")
+}
+
+/// 商品属性
+model ProductAttribute {
+  id        Int    @id @default(autoincrement())
+  productId Int    @map("product_id")
+  name      String @db.VarChar(50) // 属性名：材质、尺寸、颜色…
+  value     String @db.VarChar(200)
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("product_attributes")
+}
+
+// ==================== 交易体系 ====================
+
+/// 订单主表
+model Order {
+  id            Int      @id @default(autoincrement())
+  orderNo       String   @unique @db.VarChar(32) @map("order_no")
+  userId        Int      @map("user_id")
+  totalAmount   Decimal  @db.Decimal(10, 2) @map("total_amount")
+  payAmount     Decimal  @db.Decimal(10, 2) @map("pay_amount")
+  status        Int      @default(0) // 0=待付款 1=待发货 2=已发货 3=已完成 4=已取消 5=售后中
+  receiverName  String   @db.VarChar(50) @map("receiver_name")
+  receiverPhone String   @db.VarChar(20) @map("receiver_phone")
+  receiverAddr  String   @db.VarChar(500) @map("receiver_addr")
+  remark        String?  @db.VarChar(500)
+  paidAt        DateTime? @map("paid_at")
+  shippedAt     DateTime? @map("shipped_at")
+  completedAt   DateTime? @map("completed_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user     User        @relation(fields: [userId], references: [id])
+  items    OrderItem[]
+  payments Payment[]
+  refunds  Refund[]
+
+  @@map("orders")
+}
+
+/// 订单明细
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int     @map("order_id")
+  productId Int     @map("product_id")
+  skuId     Int     @map("sku_id")
+  name      String  @db.VarChar(200)
+  image     String? @db.VarChar(500)
+  price     Decimal @db.Decimal(10, 2)
+  quantity  Int
+
+  order   Order      @relation(fields: [orderId], references: [id])
+  product Product    @relation(fields: [productId], references: [id])
+  sku     ProductSku @relation(fields: [skuId], references: [id])
+
+  @@map("order_items")
+}
+
+/// 支付记录
+model Payment {
+  id            Int      @id @default(autoincrement())
+  orderId       Int      @map("order_id")
+  paymentNo     String   @unique @db.VarChar(64) @map("payment_no")
+  method        String   @db.VarChar(20) // wechat / alipay
+  amount        Decimal  @db.Decimal(10, 2)
+  status        Int      @default(0) // 0=待支付 1=已支付 2=退款
+  paidAt        DateTime? @map("paid_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("payments")
+}
+
+/// 退款/售后
+model Refund {
+  id        Int      @id @default(autoincrement())
+  orderId   Int      @map("order_id")
+  reason    String   @db.VarChar(500)
+  amount    Decimal  @db.Decimal(10, 2)
+  status    Int      @default(0) // 0=申请中 1=已同意 2=已拒绝 3=已退款
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("refunds")
+}
+
+/// 购物车
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  productId Int      @map("product_id")
+  skuId     Int      @map("sku_id")
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user    User       @relation(fields: [userId], references: [id])
+  product Product    @relation(fields: [productId], references: [id])
+  sku     ProductSku @relation(fields: [skuId], references: [id])
+
+  @@unique([userId, skuId])
+  @@map("cart_items")
+}
+
+// ==================== 运营体系 ====================
+
+/// 首页 Banner
+model Banner {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(100)
+  image     String   @db.VarChar(500)
+  link      String?  @db.VarChar(500)
+  sort      Int      @default(0)
+  status    Int      @default(1) // 1=显示 0=隐藏
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("banners")
+}
+
+/// 商品评价
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  productId Int      @map("product_id")
+  rating    Int      // 1-5 星
+  content   String?  @db.Text
+  images    String?  @db.Text // JSON 数组存储图片 URL
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("reviews")
+}
+
+/// 用户收藏
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  productId Int      @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+  @@map("favorites")
+}
