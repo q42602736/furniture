@@ -14,13 +14,6 @@ const router = createRouter({
           component: () => import('@/views/dashboard/Index.vue'),
           meta: { title: '平台总览' },
         },
-        // 商家管理
-        {
-          path: 'merchants',
-          name: 'merchants',
-          component: () => import('@/views/merchant/MerchantList.vue'),
-          meta: { title: '商家列表' },
-        },
         // 商品管理
         {
           path: 'products',

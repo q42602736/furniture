@@ -41,7 +41,6 @@ const authStore = useAuthStore()
 
 const menus = [
   { path: '/', icon: '📊', label: '平台总览' },
-  { path: '/merchants', icon: '🏪', label: '商家管理' },
   { path: '/products', icon: '📦', label: '商品管理' },
   { path: '/categories', icon: '📁', label: '分类管理' },
   { path: '/orders', icon: '📋', label: '订单管理' },
