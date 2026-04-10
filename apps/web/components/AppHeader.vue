@@ -1,62 +1,240 @@
 <template>
-  <header class="bg-white shadow-sm sticky top-0 z-50">
+  <header class="bg-white">
     <!-- 顶部工具栏 -->
-    <div class="bg-gray-100 text-sm">
-      <div class="max-w-7xl mx-auto px-4 flex items-center justify-between h-8">
-        <span class="text-gray-500">欢迎来到美家优选</span>
+    <div class="bg-[#333] text-xs">
+      <div class="max-w-[1200px] mx-auto px-4 flex items-center justify-between h-8 text-gray-300">
+        <span>欢迎来到美家优选！正品保障 · 全国配送 · 售后无忧</span>
         <div class="flex items-center gap-4">
-          <NuxtLink to="/login" class="text-gray-600 hover:text-orange-500">登录</NuxtLink>
-          <NuxtLink to="/user/orders" class="text-gray-600 hover:text-orange-500">我的订单</NuxtLink>
-          <NuxtLink to="/user" class="text-gray-600 hover:text-orange-500">个人中心</NuxtLink>
-          <NuxtLink to="/help" class="text-gray-600 hover:text-orange-500">客户服务</NuxtLink>
+          <NuxtLink to="/login" class="hover:text-white transition">登录</NuxtLink>
+          <span class="text-gray-500">|</span>
+          <NuxtLink to="/register" class="hover:text-white transition">免费注册</NuxtLink>
+          <span class="text-gray-500">|</span>
+          <NuxtLink to="/user/orders" class="hover:text-white transition">我的订单</NuxtLink>
+          <span class="text-gray-500">|</span>
+          <NuxtLink to="/user" class="hover:text-white transition">个人中心</NuxtLink>
+          <span class="text-gray-500">|</span>
+          <NuxtLink to="/help" class="hover:text-white transition">客户服务</NuxtLink>
         </div>
       </div>
     </div>
 
-    <!-- Logo + 搜索栏 -->
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-8">
-      <NuxtLink to="/" class="text-2xl font-bold text-orange-500 whitespace-nowrap">
-        美家优选
-      </NuxtLink>
-      <div class="flex-1 flex">
-        <input
-          type="text"
-          placeholder="请输入搜索内容"
-          class="flex-1 border border-r-0 border-gray-300 rounded-l px-4 py-2 focus:outline-none focus:border-orange-500"
-        />
-        <button class="bg-orange-500 text-white px-6 py-2 rounded-r hover:bg-orange-600">
-          搜索
-        </button>
+    <!-- Logo + 搜索 + 购物车 -->
+    <div class="border-b border-gray-100">
+      <div class="max-w-[1200px] mx-auto px-4 flex items-center justify-between h-[90px]">
+        <!-- Logo -->
+        <NuxtLink to="/" class="flex items-center gap-2 shrink-0">
+          <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center">
+            <span class="text-white text-xl font-bold">美</span>
+          </div>
+          <div>
+            <div class="text-xl font-bold text-gray-800 leading-tight">美家优选</div>
+            <div class="text-[11px] text-gray-400 tracking-wider">MEIJIA SELECT</div>
+          </div>
+        </NuxtLink>
+
+        <!-- 搜索框 -->
+        <div class="flex-1 max-w-[560px] mx-8">
+          <div class="flex gap-3 mb-1.5 text-xs text-gray-400">
+            <span
+              v-for="word in hotWords"
+              :key="word"
+              class="cursor-pointer hover:text-orange-500 transition"
+            >
+              {{ word }}
+            </span>
+          </div>
+          <div class="flex">
+            <input
+              v-model="searchKeyword"
+              type="text"
+              placeholder="搜索家具、建材、家饰..."
+              class="flex-1 h-10 border-2 border-orange-500 border-r-0 rounded-l px-4 text-sm focus:outline-none"
+              @keyup.enter="handleSearch"
+            />
+            <button
+              class="h-10 px-8 bg-orange-500 text-white text-sm font-medium rounded-r hover:bg-orange-600 transition shrink-0"
+              @click="handleSearch"
+            >
+              搜 索
+            </button>
+          </div>
+        </div>
+
+        <!-- 购物车 -->
+        <NuxtLink
+          to="/cart"
+          class="flex items-center gap-2 border border-gray-200 rounded px-5 py-2.5 hover:border-orange-500 hover:text-orange-500 transition group shrink-0"
+        >
+          <svg class="w-5 h-5 text-gray-500 group-hover:text-orange-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+          </svg>
+          <span class="text-sm">购物车</span>
+          <span class="bg-orange-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">0</span>
+        </NuxtLink>
       </div>
     </div>
 
-    <!-- 分类导航 -->
-    <nav class="border-t border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 flex items-center gap-6 h-10 text-sm">
-        <NuxtLink
-          v-for="cat in categories"
-          :key="cat.slug"
-          :to="`/category/${cat.slug}`"
-          class="text-gray-700 hover:text-orange-500 whitespace-nowrap"
+    <!-- 分类导航 + 频道 -->
+    <div class="bg-white shadow-sm relative z-40">
+      <div class="max-w-[1200px] mx-auto px-4 flex items-stretch h-[42px]">
+        <!-- 全部分类 -->
+        <div
+          class="relative w-[210px] shrink-0"
+          @mouseenter="showCategoryPanel = true"
+          @mouseleave="showCategoryPanel = false"
         >
-          {{ cat.name }}
-        </NuxtLink>
-        <NuxtLink to="/brand" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">品牌馆</NuxtLink>
+          <div class="bg-orange-500 text-white h-full flex items-center justify-center gap-2 cursor-pointer text-sm font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+            全部商品分类
+          </div>
+
+          <!-- 分类悬浮面板 -->
+          <div
+            v-show="showCategoryPanel"
+            class="absolute top-full left-0 w-[210px] bg-[#3d3d3f] z-50 shadow-xl"
+          >
+            <div
+              v-for="cat in categories"
+              :key="cat.slug"
+              class="group relative"
+              @mouseenter="activeCategorySlug = cat.slug"
+              @mouseleave="activeCategorySlug = ''"
+            >
+              <NuxtLink
+                :to="`/category/${cat.slug}`"
+                class="flex items-center justify-between px-4 py-2.5 text-gray-200 text-sm hover:bg-[#555] hover:text-white transition"
+              >
+                <span>{{ cat.name }}</span>
+                <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </NuxtLink>
+
+              <!-- 二级分类弹出 -->
+              <div
+                v-if="activeCategorySlug === cat.slug && cat.children?.length"
+                class="absolute left-[210px] top-0 bg-white shadow-xl border border-gray-100 rounded-r min-w-[400px] p-6 z-50"
+              >
+                <div class="flex flex-wrap gap-x-6 gap-y-2">
+                  <NuxtLink
+                    v-for="sub in cat.children"
+                    :key="sub.slug"
+                    :to="`/category/${sub.slug}`"
+                    class="text-sm text-gray-600 hover:text-orange-500 transition"
+                  >
+                    {{ sub.name }}
+                  </NuxtLink>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 频道导航 -->
+        <nav class="flex items-center gap-6 ml-6 text-sm">
+          <NuxtLink to="/" class="text-gray-700 hover:text-orange-500 font-medium transition">首页</NuxtLink>
+          <NuxtLink to="/brand" class="text-gray-700 hover:text-orange-500 transition">品牌馆</NuxtLink>
+          <NuxtLink to="/new" class="text-gray-700 hover:text-orange-500 transition">新品上市</NuxtLink>
+          <NuxtLink to="/sale" class="text-gray-700 hover:text-orange-500 transition">特惠专区</NuxtLink>
+          <NuxtLink to="/buyer-show" class="text-gray-700 hover:text-orange-500 transition">买家秀</NuxtLink>
+        </nav>
       </div>
-    </nav>
+    </div>
   </header>
 </template>
 
 <script setup lang="ts">
+const searchKeyword = ref('')
+const showCategoryPanel = ref(false)
+const activeCategorySlug = ref('')
+
+const hotWords = ['意式极简', '奶油风沙发', '实木床', '岩板餐桌', '智能马桶']
+
 const categories = [
-  { name: '客厅', slug: 'living-room' },
-  { name: '卧室', slug: 'bedroom' },
-  { name: '餐厅', slug: 'dining-room' },
-  { name: '儿童房', slug: 'kids-room' },
-  { name: '书房', slug: 'study' },
-  { name: '灯饰', slug: 'lighting' },
-  { name: '卫浴', slug: 'bathroom' },
-  { name: '家饰家纺', slug: 'decor' },
-  { name: '建材电器', slug: 'material' },
+  {
+    name: '客厅', slug: 'living-room',
+    children: [
+      { name: '沙发', slug: 'sofa' },
+      { name: '茶几', slug: 'coffee-table' },
+      { name: '电视柜', slug: 'tv-cabinet' },
+      { name: '休闲椅', slug: 'lounge-chair' },
+    ],
+  },
+  {
+    name: '卧室', slug: 'bedroom',
+    children: [
+      { name: '床', slug: 'bed' },
+      { name: '床头柜', slug: 'nightstand' },
+      { name: '床垫', slug: 'mattress' },
+      { name: '妆台/妆凳', slug: 'vanity' },
+    ],
+  },
+  {
+    name: '餐厅', slug: 'dining-room',
+    children: [
+      { name: '餐桌', slug: 'dining-table' },
+      { name: '餐椅', slug: 'dining-chair' },
+      { name: '餐边柜', slug: 'sideboard' },
+      { name: '岛台', slug: 'kitchen-island' },
+    ],
+  },
+  {
+    name: '儿童房', slug: 'kids-room',
+    children: [
+      { name: '儿童床', slug: 'kids-bed' },
+      { name: '儿童桌', slug: 'kids-desk' },
+      { name: '儿童床头柜', slug: 'kids-nightstand' },
+    ],
+  },
+  {
+    name: '书房', slug: 'study',
+    children: [
+      { name: '书桌', slug: 'desk' },
+      { name: '书柜', slug: 'bookcase' },
+      { name: '茶台', slug: 'tea-table' },
+      { name: '书椅/转椅', slug: 'office-chair' },
+    ],
+  },
+  {
+    name: '灯饰', slug: 'lighting',
+    children: [
+      { name: '吊灯', slug: 'chandelier' },
+      { name: '吸顶灯', slug: 'ceiling-light' },
+      { name: 'LED筒/射灯', slug: 'led-spotlight' },
+    ],
+  },
+  {
+    name: '卫浴', slug: 'bathroom',
+    children: [
+      { name: '浴室柜', slug: 'bathroom-cabinet' },
+      { name: '马桶', slug: 'toilet' },
+      { name: '花洒', slug: 'shower' },
+      { name: '龙头', slug: 'faucet' },
+    ],
+  },
+  {
+    name: '家饰家纺', slug: 'decor',
+    children: [
+      { name: '装饰字画', slug: 'wall-art' },
+      { name: '装饰摆件', slug: 'ornament' },
+      { name: '床品', slug: 'bedding' },
+    ],
+  },
+  {
+    name: '建材电器', slug: 'material',
+    children: [
+      { name: '地板', slug: 'flooring' },
+      { name: '烟灶套装', slug: 'range-hood' },
+      { name: '厨盆水槽', slug: 'kitchen-sink' },
+    ],
+  },
 ]
+
+function handleSearch() {
+  if (searchKeyword.value.trim()) {
+    navigateTo(`/search?q=${encodeURIComponent(searchKeyword.value.trim())}`)
+  }
+}
 </script>
