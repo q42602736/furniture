@@ -4,9 +4,11 @@
   "private": true,
   "description": "多商家入驻家居电商平台",
   "scripts": {
+    "dev": "concurrently -n server,web,admin -c blue,green,yellow \"pnpm dev:server\" \"pnpm dev:web\" \"pnpm dev:admin\"",
     "dev:web": "pnpm --filter @furniture/web dev",
     "dev:admin": "pnpm --filter @furniture/admin dev",
     "dev:server": "pnpm --filter @furniture/server dev",
+    "build": "pnpm build:server && pnpm build:web && pnpm build:admin",
     "build:web": "pnpm --filter @furniture/web build",
     "build:admin": "pnpm --filter @furniture/admin build",
     "build:server": "pnpm --filter @furniture/server build",
@@ -26,5 +28,8 @@
       "sharp",
       "vue-demi"
     ]
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }

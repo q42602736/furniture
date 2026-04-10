@@ -6,7 +6,7 @@ services:
     container_name: furniture-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-password}
       MYSQL_DATABASE: furniture_platform
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
@@ -15,6 +15,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -24,6 +29,62 @@ services:
       - '6379:6379'
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # === 以下服务仅在生产部署时使用 ===
+  # 启动方式: docker compose --profile prod up -d
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: furniture-server
+    restart: unless-stopped
+    profiles: ['prod']
+    ports:
+      - '3001:3001'
+    environment:
+      DATABASE_URL: mysql://root:${MYSQL_ROOT_PASSWORD:-password}@mysql:3306/furniture_platform
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-furniture-platform-jwt-secret-prod}
+      PORT: 3001
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NUXT_PUBLIC_API_BASE: http://server:3001/api
+    container_name: furniture-web
+    restart: unless-stopped
+    profiles: ['prod']
+    ports:
+      - '3000:3000'
+    environment:
+      NUXT_PUBLIC_API_BASE: http://server:3001/api
+    depends_on:
+      - server
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    container_name: furniture-admin
+    restart: unless-stopped
+    profiles: ['prod']
+    ports:
+      - '3003:80'
+    depends_on:
+      - server
 
 volumes:
   mysql_data:
