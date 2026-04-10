@@ -8,12 +8,11 @@ export async function getCartItems(userId: number) {
     orderBy: { createdAt: 'desc' },
     include: {
       product: {
-        select: { id: true, name: true, mainImage: true, status: true, merchantId: true },
         include: {
           merchant: { select: { id: true, name: true, logo: true } },
         },
       },
-      sku: { select: { id: true, name: true, price: true, stock: true, image: true } },
+      sku: true,
     },
   })
   return items

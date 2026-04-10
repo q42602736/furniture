@@ -135,7 +135,6 @@ export async function getOrderDetail(userId: number, orderNo: string) {
       items: {
         include: {
           product: {
-            select: { id: true, merchantId: true },
             include: { merchant: { select: { id: true, name: true, logo: true } } },
           },
         },
