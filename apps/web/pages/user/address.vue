@@ -23,12 +23,11 @@
               <span class="text-sm text-gray-500">{{ addr.phone }}</span>
               <span v-if="addr.isDefault" class="text-[10px] bg-orange-500 text-white px-2 py-0.5 rounded">默认</span>
             </div>
-            <p class="text-sm text-gray-500">{{ addr.address }}</p>
+            <p class="text-sm text-gray-500">{{ addr.province }} {{ addr.city }} {{ addr.district }} {{ addr.address }}</p>
           </div>
           <div class="flex items-center gap-3 shrink-0 ml-4">
-            <button class="text-xs text-gray-400 hover:text-orange-500 transition">编辑</button>
-            <button class="text-xs text-gray-400 hover:text-red-500 transition">删除</button>
-            <button v-if="!addr.isDefault" class="text-xs text-gray-400 hover:text-orange-500 transition">设为默认</button>
+            <button class="text-xs text-gray-400 hover:text-red-500 transition" @click="deleteAddress(addr.id)">删除</button>
+            <button v-if="!addr.isDefault" class="text-xs text-gray-400 hover:text-orange-500 transition" @click="setDefault(addr.id)">设为默认</button>
           </div>
         </div>
       </div>
@@ -39,13 +38,35 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'user' })
 
+const { get, post, put, del } = useApi()
 const showAddForm = ref(false)
+const addresses = ref<any[]>([])
 
-const addresses = [
-  { id: 1, name: '张三', phone: '138****8888', address: '广东省 深圳市 南山区 科技园 XX大厦 1栋 1001', isDefault: true },
-  { id: 2, name: '张三', phone: '138****8888', address: '广东省 广州市 天河区 珠江新城 XX广场 2栋 2001', isDefault: false },
-  { id: 3, name: '李四', phone: '139****9999', address: '北京市 朝阳区 望京 XX小区 3号楼 301', isDefault: false },
-]
+async function loadAddresses() {
+  try {
+    const res: any = await get('/v1/addresses')
+    if (res?.data) addresses.value = res.data
+  } catch {}
+}
+
+if (import.meta.client) {
+  loadAddresses()
+}
+
+async function deleteAddress(id: number) {
+  if (!confirm('确定删除该地址？')) return
+  try {
+    await del(`/v1/addresses/${id}`)
+    addresses.value = addresses.value.filter(a => a.id !== id)
+  } catch {}
+}
+
+async function setDefault(id: number) {
+  try {
+    await put(`/v1/addresses/${id}`, { isDefault: true })
+    await loadAddresses()
+  } catch {}
+}
 
 useHead({ title: '收货地址 - 美家优选' })
 </script>

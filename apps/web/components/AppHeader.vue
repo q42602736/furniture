@@ -5,9 +5,16 @@
       <div class="max-w-[1200px] mx-auto px-4 flex items-center justify-between h-8 text-gray-300">
         <span>欢迎来到美家优选！正品保障 · 全国配送 · 售后无忧</span>
         <div class="flex items-center gap-4">
-          <NuxtLink to="/login" class="hover:text-white transition">登录</NuxtLink>
-          <span class="text-gray-500">|</span>
-          <NuxtLink to="/register" class="hover:text-white transition">免费注册</NuxtLink>
+          <template v-if="userStore.isLoggedIn">
+            <NuxtLink to="/user" class="hover:text-white transition">{{ userStore.user?.nickname || '我的账户' }}</NuxtLink>
+            <span class="text-gray-500">|</span>
+            <button class="hover:text-white transition" @click="userStore.logout()">退出</button>
+          </template>
+          <template v-else>
+            <NuxtLink to="/login" class="hover:text-white transition">登录</NuxtLink>
+            <span class="text-gray-500">|</span>
+            <NuxtLink to="/login" class="hover:text-white transition">免费注册</NuxtLink>
+          </template>
           <span class="text-gray-500">|</span>
           <NuxtLink to="/user/orders" class="hover:text-white transition">我的订单</NuxtLink>
           <span class="text-gray-500">|</span>
@@ -153,6 +160,12 @@ const activeCategorySlug = ref('')
 const hotWords = ['意式极简', '奶油风沙发', '实木床', '岩板餐桌', '智能马桶']
 
 const { categories } = useCategories()
+const userStore = useUserStore()
+
+// 初始化时加载用户信息
+if (import.meta.client && userStore.isLoggedIn && !userStore.user) {
+  userStore.fetchProfile()
+}
 
 function handleSearch() {
   if (searchKeyword.value.trim()) {

@@ -110,7 +110,7 @@
               placeholder="最高价"
               class="w-24 h-8 border border-gray-200 rounded px-2 text-sm focus:outline-none focus:border-orange-500"
             />
-            <button class="h-8 px-4 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition">确定</button>
+            <button class="h-8 px-4 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition" @click="currentPage = 1; loadProducts()">确定</button>
           </div>
         </div>
       </div>
@@ -167,19 +167,17 @@
           class="bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-lg transition-all group"
         >
           <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative">
-            <span class="text-gray-300 text-sm">商品图片</span>
-            <div v-if="product.tag" class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded">{{ product.tag }}</div>
+            <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" />
+            <span v-else class="text-gray-300 text-sm">商品图片</span>
           </div>
           <div class="p-3">
-            <p class="text-xs text-gray-400 mb-1">{{ product.brand }}</p>
+            <p class="text-xs text-gray-400 mb-1">{{ product.brand?.name || '品牌' }}</p>
             <p class="text-sm font-medium text-gray-700 truncate group-hover:text-orange-500 transition">{{ product.name }}</p>
             <div class="flex items-baseline gap-2 mt-2">
-              <span class="text-orange-500 font-bold">¥{{ product.price }}</span>
-              <span v-if="product.originalPrice" class="text-xs text-gray-400 line-through">¥{{ product.originalPrice }}</span>
+              <span class="text-orange-500 font-bold">¥{{ product.skus?.[0]?.price || '--' }}</span>
             </div>
             <div class="flex items-center justify-between mt-2 text-xs text-gray-400">
-              <span>已售 {{ product.sales }}</span>
-              <span>{{ product.comments }} 评价</span>
+              <span>{{ product._count?.reviews || 0 }} 评价</span>
             </div>
           </div>
         </NuxtLink>
@@ -194,36 +192,48 @@
           class="bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-lg transition-all flex group"
         >
           <div class="w-[220px] h-[220px] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center shrink-0 relative">
-            <span class="text-gray-300 text-sm">商品图片</span>
-            <div v-if="product.tag" class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded">{{ product.tag }}</div>
+            <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" />
+            <span v-else class="text-gray-300 text-sm">商品图片</span>
           </div>
           <div class="flex-1 p-5 flex flex-col justify-between">
             <div>
-              <p class="text-xs text-gray-400 mb-1">{{ product.brand }}</p>
+              <p class="text-xs text-gray-400 mb-1">{{ product.brand?.name || '品牌' }}</p>
               <p class="text-base font-medium text-gray-700 group-hover:text-orange-500 transition line-clamp-2">{{ product.name }}</p>
-              <p class="text-xs text-gray-400 mt-2 line-clamp-2">{{ product.desc }}</p>
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-baseline gap-2">
-                <span class="text-orange-500 font-bold text-lg">¥{{ product.price }}</span>
-                <span v-if="product.originalPrice" class="text-sm text-gray-400 line-through">¥{{ product.originalPrice }}</span>
+                <span class="text-orange-500 font-bold text-lg">¥{{ product.skus?.[0]?.price || '--' }}</span>
               </div>
               <div class="flex items-center gap-4 text-xs text-gray-400">
-                <span>已售 {{ product.sales }}</span>
-                <span>{{ product.comments }} 评价</span>
+                <span>{{ product._count?.reviews || 0 }} 评价</span>
               </div>
             </div>
           </div>
         </NuxtLink>
       </div>
 
+      <!-- 空状态 -->
+      <div v-if="!loading && products.length === 0" class="text-center py-20 text-gray-400">
+        <p class="text-lg mb-2">暂无商品</p>
+        <p class="text-sm">该分类下还没有商品，请查看其他分类</p>
+      </div>
+
+      <!-- 加载中 -->
+      <div v-if="loading" class="text-center py-20 text-gray-400">
+        <p>加载中...</p>
+      </div>
+
       <!-- 分页 -->
-      <div class="flex items-center justify-center mt-8 gap-1">
-        <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 bg-white text-sm text-gray-400 hover:border-orange-500 hover:text-orange-500 transition">
+      <div v-if="totalPages > 1" class="flex items-center justify-center mt-8 gap-1">
+        <button
+          class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 bg-white text-sm text-gray-400 hover:border-orange-500 hover:text-orange-500 transition"
+          :disabled="currentPage === 1"
+          @click="currentPage > 1 && (currentPage--)"
+        >
           &lt;
         </button>
         <button
-          v-for="page in 5"
+          v-for="page in totalPages"
           :key="page"
           :class="[
             'w-9 h-9 flex items-center justify-center rounded border text-sm transition',
@@ -233,7 +243,11 @@
         >
           {{ page }}
         </button>
-        <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 bg-white text-sm text-gray-400 hover:border-orange-500 hover:text-orange-500 transition">
+        <button
+          class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 bg-white text-sm text-gray-400 hover:border-orange-500 hover:text-orange-500 transition"
+          :disabled="currentPage === totalPages"
+          @click="currentPage < totalPages && (currentPage++)"
+        >
           &gt;
         </button>
       </div>
@@ -243,6 +257,7 @@
 
 <script setup lang="ts">
 const route = useRoute()
+const { get } = useApi()
 const slug = computed(() => route.params.slug as string)
 
 const activeSubCategory = ref('')
@@ -253,17 +268,21 @@ const priceMax = ref('')
 const activeSort = ref('default')
 const viewMode = ref<'grid' | 'list'>('grid')
 const currentPage = ref(1)
-const totalProducts = ref(128)
+const totalProducts = ref(0)
+const pageSize = 20
+const loading = ref(false)
+const products = ref<any[]>([])
+
+const totalPages = computed(() => Math.max(1, Math.ceil(totalProducts.value / pageSize)))
 
 const sortOptions = [
   { label: '综合排序', value: 'default', sortable: false },
   { label: '销量', value: 'sales', sortable: true },
-  { label: '价格', value: 'price', sortable: true },
-  { label: '评价', value: 'comments', sortable: true },
-  { label: '新品', value: 'new', sortable: false },
+  { label: '价格', value: 'price_asc', sortable: true },
+  { label: '新品', value: 'newest', sortable: false },
 ]
 
-const { getCategoryBySlug } = useCategories()
+const { getCategoryBySlug, categories } = useCategories()
 
 const categoryInfo = computed(() => {
   const found = getCategoryBySlug(slug.value)
@@ -273,26 +292,53 @@ const categoryInfo = computed(() => {
 const brands = ['欧瑞仕', '卡琪朵', '慕梵希', '罗曼仕', 'Milantti 米兰蒂', '檀雅居', '诺美帝斯', '歌迪']
 const styles = ['意式极简', '轻奢', '现代简约', '美式', '北欧', '新中式', '法式']
 
-// 模拟商品数据
-const products = computed(() => {
-  const items = []
-  for (let i = 1; i <= 20; i++) {
-    items.push({
-      id: `${slug.value}-${i}`,
-      name: `${categoryInfo.value.name}精选家具商品 ${i} · 品质保障`,
-      brand: brands[i % brands.length],
-      price: (Math.floor(Math.random() * 50) + 10) * 100,
-      originalPrice: i % 3 === 0 ? (Math.floor(Math.random() * 50) + 60) * 100 : undefined,
-      sales: Math.floor(Math.random() * 500) + 10,
-      comments: Math.floor(Math.random() * 200) + 5,
-      tag: i <= 3 ? '热卖' : i === 4 ? '新品' : undefined,
-      desc: `精选${categoryInfo.value.name}家具，采用优质材料，匠心制造，为您打造舒适的居家空间`,
-    })
+// 从 API 加载商品
+async function loadProducts() {
+  loading.value = true
+  try {
+    const cat = categoryInfo.value
+    // 查找分类 ID
+    const mainCat = categories.value.find(c => c.slug === slug.value)
+    const subCat = activeSubCategory.value
+      ? categories.value.flatMap(c => c.children || []).find(c => c.slug === activeSubCategory.value)
+      : null
+
+    const params: Record<string, any> = {
+      page: currentPage.value,
+      pageSize,
+      sort: activeSort.value,
+    }
+    if (subCat) {
+      params.categoryId = subCat.id
+    } else if (mainCat) {
+      params.categoryId = mainCat.id
+    }
+    if (priceMin.value) params.minPrice = Number(priceMin.value)
+    if (priceMax.value) params.maxPrice = Number(priceMax.value)
+
+    const res: any = await get('/v1/products', params)
+    if (res?.data) {
+      products.value = res.data.list || []
+      totalProducts.value = res.data.total || 0
+    }
+  } catch {
+    products.value = []
+  } finally {
+    loading.value = false
   }
-  return items
+}
+
+// 监听筛选条件变化
+watch([slug, activeSubCategory, activeSort, currentPage], () => {
+  if (import.meta.client) loadProducts()
+}, { immediate: true })
+
+// 价格确定按钮触发（模板中已绑定）
+watch([priceMin, priceMax], () => {
+  // 价格由确定按钮触发，这里不自动加载
 })
 
 useHead({
-  title: `${categoryInfo.value.name} - 美家优选`,
+  title: computed(() => `${categoryInfo.value.name} - 美家优选`),
 })
 </script>

@@ -46,8 +46,9 @@
               <input type="checkbox" v-model="item.selected" class="w-4 h-4 accent-orange-500 cursor-pointer" />
             </label>
             <div class="flex-1 flex items-center gap-4 min-w-0">
-              <NuxtLink :to="`/product/${item.productId}`" class="w-[80px] h-[80px] bg-gradient-to-br from-gray-50 to-gray-100 rounded flex items-center justify-center shrink-0">
-                <span class="text-gray-300 text-[10px]">图片</span>
+              <NuxtLink :to="`/product/${item.productId}`" class="w-[80px] h-[80px] bg-gradient-to-br from-gray-50 to-gray-100 rounded flex items-center justify-center shrink-0 overflow-hidden">
+                <img v-if="item.image" :src="item.image" :alt="item.name" class="w-full h-full object-cover" />
+                <span v-else class="text-gray-300 text-[10px]">图片</span>
               </NuxtLink>
               <div class="min-w-0 flex-1">
                 <NuxtLink :to="`/product/${item.productId}`" class="text-sm text-gray-700 hover:text-orange-500 transition line-clamp-2">{{ item.name }}</NuxtLink>
@@ -59,9 +60,9 @@
             </div>
             <div class="w-[120px] flex items-center justify-center">
               <div class="flex items-center border border-gray-200 rounded">
-                <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-orange-500 transition" @click="item.quantity > 1 && item.quantity--">−</button>
-                <input v-model.number="item.quantity" type="number" class="w-10 h-7 text-center text-sm border-x border-gray-200 focus:outline-none" min="1" />
-                <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-orange-500 transition" @click="item.quantity++">+</button>
+                <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-orange-500 transition" @click="updateQuantity(item, item.quantity - 1)">−</button>
+                <input v-model.number="item.quantity" type="number" class="w-10 h-7 text-center text-sm border-x border-gray-200 focus:outline-none" min="1" @change="updateQuantity(item, item.quantity)" />
+                <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-orange-500 transition" @click="updateQuantity(item, item.quantity + 1)">+</button>
               </div>
             </div>
             <div class="w-[100px] text-center">
@@ -137,24 +138,58 @@
 </template>
 
 <script setup lang="ts">
+const { get, put, del } = useApi()
+const userStore = useUserStore()
+
 interface CartItem {
   id: number
-  productId: string
+  productId: number
+  skuId: number
   name: string
   sku: string
   price: number
   quantity: number
   selected: boolean
-  merchantId: string
+  image: string
+  merchantId: number
   merchantName: string
 }
 
-const cartItems = reactive<CartItem[]>([
-  { id: 1, productId: 'p1', name: '意式极简真皮沙发 大户型客厅直排三人位', sku: '胡桃色 / 2.0m', price: 6980, quantity: 1, selected: true, merchantId: 'm1', merchantName: '欧瑞仕旗舰店' },
-  { id: 2, productId: 'p2', name: '北欧实木床 双人床主卧大床', sku: '原木色 / 1.8m', price: 4580, quantity: 1, selected: true, merchantId: 'm1', merchantName: '欧瑞仕旗舰店' },
-  { id: 3, productId: 'p3', name: '意式岩板餐桌 长方形轻奢饭桌', sku: '白色 / 1.4m', price: 3280, quantity: 1, selected: false, merchantId: 'm2', merchantName: '慕梵希家居旗舰店' },
-  { id: 4, productId: 'p4', name: '现代简约实木书柜 落地书架置物架', sku: '胡桃色 / 1.2m', price: 2180, quantity: 2, selected: false, merchantId: 'm2', merchantName: '慕梵希家居旗舰店' },
-])
+const cartItems = reactive<CartItem[]>([])
+const loading = ref(false)
+
+// 加载购物车
+async function loadCart() {
+  if (!userStore.isLoggedIn) return
+  loading.value = true
+  try {
+    const res: any = await get('/v1/cart')
+    if (res?.data) {
+      cartItems.splice(0, cartItems.length)
+      for (const item of res.data) {
+        cartItems.push({
+          id: item.id,
+          productId: item.productId,
+          skuId: item.skuId,
+          name: item.product?.name || '商品',
+          sku: item.sku?.name || '',
+          price: Number(item.sku?.price || 0),
+          quantity: item.quantity,
+          selected: false,
+          image: item.sku?.image || '',
+          merchantId: item.product?.merchant?.id || 0,
+          merchantName: item.product?.merchant?.name || '店铺',
+        })
+      }
+    }
+  } catch {} finally {
+    loading.value = false
+  }
+}
+
+if (import.meta.client) {
+  loadCart()
+}
 
 const selectAll = computed({
   get: () => cartItems.length > 0 && cartItems.every(item => item.selected),
@@ -165,7 +200,7 @@ const selectedCount = computed(() => cartItems.filter(i => i.selected).length)
 const totalPrice = computed(() => cartItems.filter(i => i.selected).reduce((sum, i) => sum + i.price * i.quantity, 0))
 
 const groupedCart = computed(() => {
-  const map = new Map<string, { merchantId: string; merchantName: string; items: CartItem[] }>()
+  const map = new Map<number, { merchantId: number; merchantName: string; items: CartItem[] }>()
   for (const item of cartItems) {
     if (!map.has(item.merchantId)) {
       map.set(item.merchantId, { merchantId: item.merchantId, merchantName: item.merchantName, items: [] })
@@ -175,20 +210,31 @@ const groupedCart = computed(() => {
   return Array.from(map.values())
 })
 
-function isMerchantAllSelected(merchantId: string) {
+function isMerchantAllSelected(merchantId: number) {
   const items = cartItems.filter(i => i.merchantId === merchantId)
   return items.length > 0 && items.every(i => i.selected)
 }
 
-function toggleMerchant(merchantId: string) {
+function toggleMerchant(merchantId: number) {
   const items = cartItems.filter(i => i.merchantId === merchantId)
   const allSelected = items.every(i => i.selected)
   items.forEach(i => i.selected = !allSelected)
 }
 
-function removeItem(id: number) {
-  const index = cartItems.findIndex(i => i.id === id)
-  if (index !== -1) cartItems.splice(index, 1)
+async function updateQuantity(item: CartItem, newQty: number) {
+  if (newQty < 1) return
+  try {
+    await put(`/v1/cart/${item.id}`, { quantity: newQty })
+    item.quantity = newQty
+  } catch {}
+}
+
+async function removeItem(id: number) {
+  try {
+    await del(`/v1/cart/${id}`)
+    const index = cartItems.findIndex(i => i.id === id)
+    if (index !== -1) cartItems.splice(index, 1)
+  } catch {}
 }
 
 useHead({ title: '购物车 - 美家优选' })

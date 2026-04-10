@@ -85,9 +85,10 @@
             </label>
             <NuxtLink to="/forgot-password" class="text-orange-500 hover:underline">忘记密码？</NuxtLink>
           </div>
-          <button type="submit" class="w-full h-11 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition">
-            登录
+          <button type="submit" :disabled="loading" class="w-full h-11 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition disabled:opacity-50">
+            {{ loading ? '登录中...' : '登录' }}
           </button>
+          <p v-if="errorMsg && isLogin" class="text-red-500 text-sm text-center">{{ errorMsg }}</p>
         </form>
 
         <!-- 注册表单 -->
@@ -145,9 +146,10 @@
             <input type="checkbox" v-model="registerForm.agree" class="w-4 h-4 accent-orange-500 mt-0.5" />
             <span>我已阅读并同意 <NuxtLink to="/terms" class="text-orange-500">《用户协议》</NuxtLink> 和 <NuxtLink to="/privacy" class="text-orange-500">《隐私政策》</NuxtLink></span>
           </label>
-          <button type="submit" class="w-full h-11 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition">
-            注册
+          <button type="submit" :disabled="loading" class="w-full h-11 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition disabled:opacity-50">
+            {{ loading ? '注册中...' : '注册' }}
           </button>
+          <p v-if="errorMsg && !isLogin" class="text-red-500 text-sm text-center">{{ errorMsg }}</p>
         </form>
 
         <!-- 第三方登录 -->
@@ -170,8 +172,11 @@
 <script setup lang="ts">
 definePageMeta({ layout: false })
 
+const userStore = useUserStore()
 const isLogin = ref(true)
 const codeCooldown = ref(0)
+const errorMsg = ref('')
+const loading = ref(false)
 
 const loginForm = reactive({
   account: '',
@@ -187,14 +192,46 @@ const registerForm = reactive({
   agree: false,
 })
 
-function handleLogin() {
-  // TODO: 接入登录 API
-  navigateTo('/')
+async function handleLogin() {
+  errorMsg.value = ''
+  if (!loginForm.account || !loginForm.password) {
+    errorMsg.value = '请输入手机号和密码'
+    return
+  }
+  loading.value = true
+  try {
+    await userStore.login(loginForm.account, loginForm.password)
+    navigateTo('/')
+  } catch (e: any) {
+    errorMsg.value = e?.data?.message || e?.message || '登录失败，请重试'
+  } finally {
+    loading.value = false
+  }
 }
 
-function handleRegister() {
-  // TODO: 接入注册 API
-  navigateTo('/')
+async function handleRegister() {
+  errorMsg.value = ''
+  if (!registerForm.phone || !registerForm.password) {
+    errorMsg.value = '请填写完整注册信息'
+    return
+  }
+  if (registerForm.password !== registerForm.confirmPassword) {
+    errorMsg.value = '两次密码输入不一致'
+    return
+  }
+  if (!registerForm.agree) {
+    errorMsg.value = '请同意用户协议'
+    return
+  }
+  loading.value = true
+  try {
+    await userStore.register(registerForm.phone, registerForm.password, registerForm.phone)
+    navigateTo('/')
+  } catch (e: any) {
+    errorMsg.value = e?.data?.message || e?.message || '注册失败，请重试'
+  } finally {
+    loading.value = false
+  }
 }
 
 function sendCode() {

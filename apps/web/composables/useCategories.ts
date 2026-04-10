@@ -1,9 +1,12 @@
 export interface CategoryChild {
+  id?: number
   name: string
   slug: string
+  icon?: string
 }
 
 export interface CategoryItem {
+  id?: number
   name: string
   slug: string
   icon?: string
@@ -91,8 +94,17 @@ const categoriesData: CategoryItem[] = [
 ]
 
 export function useCategories() {
-  // TODO: 后端 API 对接后改为 useFetch('/api/categories/tree')
-  const categories = ref(categoriesData)
+  const categories = ref<CategoryItem[]>(categoriesData)
+
+  // 异步从 API 获取分类树（不阻塞渲染，静态数据作为降级）
+  if (import.meta.client) {
+    const { get } = useApi()
+    get('/v1/categories/tree').then((res: any) => {
+      if (res?.data?.length) {
+        categories.value = res.data
+      }
+    }).catch(() => {})
+  }
 
   const getCategoryBySlug = (slug: string) => {
     return categories.value.find(c => c.slug === slug)

@@ -21,21 +21,25 @@
 
           <!-- Banner 轮播 -->
           <div class="flex-1 relative rounded-lg overflow-hidden bg-gray-200 min-h-[380px]">
-            <div
-              v-for="(banner, idx) in banners"
-              :key="idx"
-              :class="[
-                'absolute inset-0 transition-opacity duration-700',
-                idx === currentBanner ? 'opacity-100 z-10' : 'opacity-0 z-0'
-              ]"
-              :style="{ background: banner.bg }"
-            >
-              <div class="flex items-center justify-center h-full text-white">
-                <div class="text-center">
-                  <h2 class="text-3xl font-bold mb-2">{{ banner.title }}</h2>
-                  <p class="text-lg opacity-80">{{ banner.subtitle }}</p>
+            <template v-if="banners.length">
+              <div
+                v-for="(banner, idx) in banners"
+                :key="banner.id || idx"
+                :class="[
+                  'absolute inset-0 transition-opacity duration-700',
+                  idx === currentBanner ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                ]"
+              >
+                <div class="flex items-center justify-center h-full text-white" :style="{ background: banner.image ? 'none' : gradients[idx % gradients.length] }">
+                  <img v-if="banner.image" :src="banner.image" :alt="banner.title" class="w-full h-full object-cover" />
+                  <div v-else class="text-center">
+                    <h2 class="text-3xl font-bold mb-2">{{ banner.title }}</h2>
+                  </div>
                 </div>
               </div>
+            </template>
+            <div v-else class="flex items-center justify-center h-full">
+              <span class="text-gray-400">加载中...</span>
             </div>
             <!-- 指示器 -->
             <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
@@ -98,20 +102,23 @@
         </div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div
-          v-for="i in 4"
-          :key="i"
+        <NuxtLink
+          v-for="product in recommendProducts"
+          :key="product.id"
+          :to="`/product/${product.id}`"
           class="group bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-lg transition-all cursor-pointer"
         >
           <div class="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
-            <span class="text-gray-400 text-sm">商品图片</span>
+            <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" />
+            <span v-else class="text-gray-400 text-sm">商品图片</span>
             <div class="absolute top-2 left-2 bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded">在售</div>
           </div>
           <div class="p-3">
-            <p class="text-xs text-orange-500 mb-1">品牌名称</p>
-            <p class="text-sm font-medium text-gray-700 truncate group-hover:text-orange-500 transition">精品家具示例商品名称 {{ i }}</p>
+            <p class="text-xs text-orange-500 mb-1">{{ product.brand?.name || '品牌' }}</p>
+            <p class="text-sm font-medium text-gray-700 truncate group-hover:text-orange-500 transition">{{ product.name }}</p>
+            <p class="text-orange-500 font-bold text-sm mt-1">¥{{ product.skus?.[0]?.price || '--' }}</p>
           </div>
-        </div>
+        </NuxtLink>
       </div>
     </section>
 
@@ -183,17 +190,32 @@
 
         <!-- 右侧商品网格 -->
         <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div
-            v-for="i in 8"
-            :key="i"
+          <NuxtLink
+            v-for="product in (floorProducts[floor.slug] || [])"
+            :key="product.id"
+            :to="`/product/${product.id}`"
             class="bg-white border border-gray-100 rounded-lg overflow-hidden hover:shadow-md transition cursor-pointer group"
+          >
+            <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+              <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" />
+              <span v-else class="text-gray-300 text-xs">{{ floor.name }}商品图片</span>
+            </div>
+            <div class="p-2.5">
+              <p class="text-xs text-gray-500 truncate">{{ product.brand?.name || '品牌' }} · {{ product.name }}</p>
+              <p class="text-orange-500 font-bold text-sm mt-1">¥{{ product.skus?.[0]?.price || '--' }}</p>
+            </div>
+          </NuxtLink>
+          <div
+            v-for="i in Math.max(0, 8 - (floorProducts[floor.slug]?.length || 0))"
+            :key="'placeholder-' + i"
+            class="bg-white border border-gray-100 rounded-lg overflow-hidden"
           >
             <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
               <span class="text-gray-300 text-xs">{{ floor.name }}商品图片</span>
             </div>
             <div class="p-2.5">
-              <p class="text-xs text-gray-500 truncate">品牌 · {{ floor.name }}商品 {{ i }}</p>
-              <p class="text-orange-500 font-bold text-sm mt-1">¥X,XXX</p>
+              <p class="text-xs text-gray-500 truncate">{{ floor.name }}商品</p>
+              <p class="text-orange-500 font-bold text-sm mt-1">¥--</p>
             </div>
           </div>
         </div>
@@ -220,15 +242,28 @@
 </template>
 
 <script setup lang="ts">
+const { get } = useApi()
 const currentBanner = ref(0)
 const activeStyle = ref('意式美学')
 
-const banners = [
-  { title: '意式极简 轻奢生活', subtitle: '全场精选家具 正品保障', bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-  { title: '奶油风系列 温暖家居', subtitle: '新品上市 限时特惠', bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
-  { title: '实木工坊 匠心之作', subtitle: '天然原木 环保品质', bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
-  { title: '智能卫浴 科技生活', subtitle: '智能马桶 感应龙头', bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
+const gradients = [
+  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
 ]
+
+// 从 API 获取 banner
+const banners = ref<any[]>([
+  { title: '意式极简 轻奢生活', image: '' },
+  { title: '奶油风系列 温暖家居', image: '' },
+  { title: '实木工坊 匠心之作', image: '' },
+])
+if (import.meta.client) {
+  get('/v1/banners').then((res: any) => {
+    if (res?.data?.length) banners.value = res.data
+  }).catch(() => {})
+}
 
 const designStyles = ['意式美学', 'INS奶油风', '现代艺术', '木本侘寂']
 
@@ -240,6 +275,14 @@ const brandList = [
 
 const { categories } = useCategories()
 const mainCategories = computed(() => categories.value.map(c => ({ name: c.name, slug: c.slug })))
+
+// 从 API 获取推荐商品
+const recommendProducts = ref<any[]>([])
+if (import.meta.client) {
+  get('/v1/products', { page: 1, pageSize: 4, sort: 'newest' }).then((res: any) => {
+    if (res?.data?.list) recommendProducts.value = res.data.list
+  }).catch(() => {})
+}
 
 const categoryFloors = [
   {
@@ -285,6 +328,28 @@ const categoryFloors = [
     ],
   },
 ]
+
+// 楼层商品数据：按分类加载
+const floorProducts = ref<Record<string, any[]>>({})
+if (import.meta.client) {
+  // 先等分类数据加载，然后按分类ID获取商品
+  const loadFloorProducts = () => {
+    categoryFloors.forEach(floor => {
+      const cat = categories.value.find(c => c.slug === floor.slug)
+      if (cat) {
+        get('/v1/products', { page: 1, pageSize: 8, categoryId: cat.id }).then((res: any) => {
+          if (res?.data?.list) {
+            floorProducts.value[floor.slug] = res.data.list
+          }
+        }).catch(() => {})
+      }
+    })
+  }
+  // 延迟一点加载，等 categories 数据就绪
+  watch(categories, (val) => {
+    if (val.length) loadFloorProducts()
+  }, { immediate: true })
+}
 
 const services = [
   { icon: '🛡️', title: '正品保障', desc: '100% 品牌授权' },

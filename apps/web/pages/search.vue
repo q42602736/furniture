@@ -44,20 +44,19 @@
           :to="`/product/${product.id}`"
           class="bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-lg transition-all group"
         >
-          <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative">
-            <span class="text-gray-300 text-sm">商品图片</span>
-            <div v-if="product.tag" class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded">{{ product.tag }}</div>
+          <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden">
+            <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" />
+            <span v-else class="text-gray-300 text-sm">商品图片</span>
           </div>
           <div class="p-3">
-            <p class="text-xs text-gray-400 mb-1">{{ product.brand }}</p>
+            <p class="text-xs text-gray-400 mb-1">{{ product.brand?.name || '品牌' }}</p>
             <p class="text-sm font-medium text-gray-700 truncate group-hover:text-orange-500 transition">{{ product.name }}</p>
             <div class="flex items-baseline gap-2 mt-2">
-              <span class="text-orange-500 font-bold">¥{{ product.price }}</span>
-              <span v-if="product.originalPrice" class="text-xs text-gray-400 line-through">¥{{ product.originalPrice }}</span>
+              <span class="text-orange-500 font-bold">¥{{ product.skus?.[0]?.price || '--' }}</span>
             </div>
             <div class="flex items-center justify-between mt-2 text-xs text-gray-400">
-              <span>{{ product.merchant }}</span>
-              <span>{{ product.sales }} 人付款</span>
+              <span>{{ product.merchant?.name || '' }}</span>
+              <span>{{ product._count?.reviews || 0 }} 评价</span>
             </div>
           </div>
         </NuxtLink>
@@ -89,39 +88,48 @@
 
 <script setup lang="ts">
 const route = useRoute()
+const { get } = useApi()
 const keyword = computed(() => (route.query.q as string) || '')
 const activeSort = ref('default')
 const onlyInStock = ref(false)
 const onlyFreeShipping = ref(false)
-const totalResults = ref(86)
+const totalResults = ref(0)
+const currentPage = ref(1)
+const products = ref<any[]>([])
+const loading = ref(false)
 
 const sortOptions = [
   { label: '综合排序', value: 'default' },
   { label: '销量优先', value: 'sales' },
-  { label: '价格从低到高', value: 'price-asc' },
-  { label: '价格从高到低', value: 'price-desc' },
-  { label: '新品优先', value: 'new' },
+  { label: '价格从低到高', value: 'price_asc' },
+  { label: '价格从高到低', value: 'price_desc' },
+  { label: '新品优先', value: 'newest' },
 ]
 
-const brands = ['欧瑞仕', '卡琪朵', '慕梵希', '罗曼仕', 'Milantti 米兰蒂', '檀雅居']
-const merchants = ['欧瑞仕旗舰店', '慕梵希家居', '卡琪朵官方', '檀雅居旗舰店']
-
-const products = computed(() => {
-  const items = []
-  for (let i = 1; i <= 20; i++) {
-    items.push({
-      id: `search-${i}`,
-      name: `${keyword.value || '家具'} 精选商品 ${i} · 正品保障`,
-      brand: brands[i % brands.length],
-      merchant: merchants[i % merchants.length],
-      price: (Math.floor(Math.random() * 80) + 10) * 100,
-      originalPrice: i % 3 === 0 ? (Math.floor(Math.random() * 80) + 90) * 100 : undefined,
-      sales: Math.floor(Math.random() * 1000) + 10,
-      tag: i <= 2 ? '热卖' : i === 3 ? '新品' : undefined,
+async function searchProducts() {
+  if (!keyword.value) return
+  loading.value = true
+  try {
+    const res: any = await get('/v1/products', {
+      page: currentPage.value,
+      pageSize: 20,
+      keyword: keyword.value,
+      sort: activeSort.value,
     })
+    if (res?.data) {
+      products.value = res.data.list || []
+      totalResults.value = res.data.total || 0
+    }
+  } catch {
+    products.value = []
+  } finally {
+    loading.value = false
   }
-  return items
-})
+}
 
-useHead({ title: `${keyword.value} - 搜索结果 - 美家优选` })
+watch([keyword, activeSort, currentPage], () => {
+  if (import.meta.client) searchProducts()
+}, { immediate: true })
+
+useHead({ title: computed(() => `${keyword.value} - 搜索结果 - 美家优选`) })
 </script>
