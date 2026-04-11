@@ -24,6 +24,28 @@
           修改密码
         </a>
       </li>
+      <li class="nav-item">
+        <a
+          class="nav-link text-active-primary pb-4"
+          :class="{ active: activeTab === 'payment' }"
+          href="javascript:;"
+          @click="switchTab('payment')"
+        >
+          <KTIcon icon-name="wallet" icon-class="fs-4 me-1" />
+          支付配置
+        </a>
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link text-active-primary pb-4"
+          :class="{ active: activeTab === 'shipping' }"
+          href="javascript:;"
+          @click="switchTab('shipping')"
+        >
+          <KTIcon icon-name="delivery" icon-class="fs-4 me-1" />
+          物流配置
+        </a>
+      </li>
     </ul>
     <!--end::导航标签-->
 
@@ -116,6 +138,185 @@
       </div>
     </div>
     <!--end::修改密码-->
+
+    <!--begin::支付配置-->
+    <div v-show="activeTab === 'payment'" class="card card-flush">
+      <div class="card-header">
+        <div class="card-title">
+          <h3 class="fw-bold m-0">支付配置</h3>
+        </div>
+      </div>
+      <div class="card-body pt-2">
+        <div v-if="configLoading" class="d-flex justify-content-center py-10">
+          <span class="spinner-border text-primary"></span>
+        </div>
+        <div v-else>
+          <!--begin::微信支付-->
+          <h4 class="fw-bold text-gray-800 mb-5">
+            <span class="bullet bullet-dot bg-success me-2 h-10px w-10px"></span>
+            微信支付
+          </h4>
+          <div class="row mb-5">
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">AppID</label>
+              <input v-model="paymentForm.wechat_app_id" type="text" class="form-control form-control-solid" placeholder="微信公众号/小程序 AppID" />
+            </div>
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">商户号 (MchID)</label>
+              <input v-model="paymentForm.wechat_mch_id" type="text" class="form-control form-control-solid" placeholder="微信支付商户号" />
+            </div>
+          </div>
+          <div class="row mb-5">
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">API 密钥</label>
+              <input v-model="paymentForm.wechat_api_key" type="password" class="form-control form-control-solid" placeholder="APIv3 密钥" />
+            </div>
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">启用状态</label>
+              <div class="form-check form-switch form-check-custom form-check-solid mt-2">
+                <input v-model="paymentForm.wechat_enabled" class="form-check-input h-25px w-45px" type="checkbox" />
+                <label class="form-check-label fw-semibold text-muted ms-3">{{ paymentForm.wechat_enabled ? '已启用' : '未启用' }}</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="separator my-8"></div>
+
+          <!--begin::支付宝-->
+          <h4 class="fw-bold text-gray-800 mb-5">
+            <span class="bullet bullet-dot bg-primary me-2 h-10px w-10px"></span>
+            支付宝
+          </h4>
+          <div class="row mb-5">
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">AppID</label>
+              <input v-model="paymentForm.alipay_app_id" type="text" class="form-control form-control-solid" placeholder="支付宝应用 AppID" />
+            </div>
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">启用状态</label>
+              <div class="form-check form-switch form-check-custom form-check-solid mt-2">
+                <input v-model="paymentForm.alipay_enabled" class="form-check-input h-25px w-45px" type="checkbox" />
+                <label class="form-check-label fw-semibold text-muted ms-3">{{ paymentForm.alipay_enabled ? '已启用' : '未启用' }}</label>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-5">
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">应用私钥</label>
+              <textarea v-model="paymentForm.alipay_private_key" class="form-control form-control-solid" rows="3" placeholder="RSA2 应用私钥"></textarea>
+            </div>
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">支付宝公钥</label>
+              <textarea v-model="paymentForm.alipay_public_key" class="form-control form-control-solid" rows="3" placeholder="支付宝公钥"></textarea>
+            </div>
+          </div>
+
+          <!--begin::提示消息-->
+          <div v-if="configMsg" class="alert d-flex align-items-center p-5 mb-5" :class="configMsgType === 'success' ? 'alert-success' : 'alert-danger'">
+            <KTIcon :icon-name="configMsgType === 'success' ? 'check-circle' : 'information-5'" :icon-class="'fs-2hx me-4 ' + (configMsgType === 'success' ? 'text-success' : 'text-danger')" />
+            <div class="d-flex flex-column"><span>{{ configMsg }}</span></div>
+          </div>
+          <!--end::提示消息-->
+
+          <div class="d-flex gap-3">
+            <button class="btn btn-primary" :disabled="configSaving" @click="savePaymentConfig">
+              <span v-if="configSaving" class="spinner-border spinner-border-sm align-middle me-1"></span>
+              {{ configSaving ? '保存中...' : '保存配置' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--end::支付配置-->
+
+    <!--begin::物流配置-->
+    <div v-show="activeTab === 'shipping'" class="card card-flush">
+      <div class="card-header">
+        <div class="card-title">
+          <h3 class="fw-bold m-0">物流配置</h3>
+        </div>
+      </div>
+      <div class="card-body pt-2">
+        <div v-if="configLoading" class="d-flex justify-content-center py-10">
+          <span class="spinner-border text-primary"></span>
+        </div>
+        <div v-else class="mw-650px">
+          <div class="mb-5">
+            <label class="form-label fw-semibold fs-6">默认物流公司</label>
+            <select v-model="shippingForm.default_company" class="form-select form-select-solid">
+              <option value="">请选择</option>
+              <option value="sf">顺丰速运</option>
+              <option value="yt">圆通速递</option>
+              <option value="zt">中通快递</option>
+              <option value="sto">申通快递</option>
+              <option value="yunda">韵达速递</option>
+              <option value="jd">京东物流</option>
+              <option value="ems">中国邮政EMS</option>
+              <option value="other">其他</option>
+            </select>
+          </div>
+          <div class="row mb-5">
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">默认运费（元）</label>
+              <input v-model.number="shippingForm.default_fee" type="number" min="0" step="0.01" class="form-control form-control-solid" placeholder="如 10.00" />
+              <div class="form-text">下单时的默认运费</div>
+            </div>
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">免运费门槛（元）</label>
+              <input v-model.number="shippingForm.free_threshold" type="number" min="0" step="0.01" class="form-control form-control-solid" placeholder="如 99.00" />
+              <div class="form-text">订单金额达到此值免运费，设为 0 表示不免运费</div>
+            </div>
+          </div>
+
+          <div class="separator my-5"></div>
+          <h5 class="fw-bold text-gray-800 mb-5">发货地址</h5>
+
+          <div class="row mb-5">
+            <div class="col-lg-4 mb-5">
+              <label class="form-label fw-semibold fs-6">省份</label>
+              <input v-model="shippingForm.sender_province" type="text" class="form-control form-control-solid" placeholder="如 广东省" />
+            </div>
+            <div class="col-lg-4 mb-5">
+              <label class="form-label fw-semibold fs-6">城市</label>
+              <input v-model="shippingForm.sender_city" type="text" class="form-control form-control-solid" placeholder="如 深圳市" />
+            </div>
+            <div class="col-lg-4 mb-5">
+              <label class="form-label fw-semibold fs-6">区县</label>
+              <input v-model="shippingForm.sender_district" type="text" class="form-control form-control-solid" placeholder="如 南山区" />
+            </div>
+          </div>
+          <div class="mb-5">
+            <label class="form-label fw-semibold fs-6">详细地址</label>
+            <input v-model="shippingForm.sender_address" type="text" class="form-control form-control-solid" placeholder="街道/门牌号" />
+          </div>
+          <div class="row mb-5">
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">联系人</label>
+              <input v-model="shippingForm.sender_name" type="text" class="form-control form-control-solid" placeholder="发货联系人姓名" />
+            </div>
+            <div class="col-lg-6 mb-5">
+              <label class="form-label fw-semibold fs-6">联系电话</label>
+              <input v-model="shippingForm.sender_phone" type="text" class="form-control form-control-solid" placeholder="发货联系电话" />
+            </div>
+          </div>
+
+          <!--begin::提示消息-->
+          <div v-if="configMsg" class="alert d-flex align-items-center p-5 mb-5" :class="configMsgType === 'success' ? 'alert-success' : 'alert-danger'">
+            <KTIcon :icon-name="configMsgType === 'success' ? 'check-circle' : 'information-5'" :icon-class="'fs-2hx me-4 ' + (configMsgType === 'success' ? 'text-success' : 'text-danger')" />
+            <div class="d-flex flex-column"><span>{{ configMsg }}</span></div>
+          </div>
+          <!--end::提示消息-->
+
+          <div class="d-flex gap-3">
+            <button class="btn btn-primary" :disabled="configSaving" @click="saveShippingConfig">
+              <span v-if="configSaving" class="spinner-border spinner-border-sm align-middle me-1"></span>
+              {{ configSaving ? '保存中...' : '保存配置' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--end::物流配置-->
   </div>
 </template>
 
@@ -127,6 +328,7 @@ import api from '@/core/api'
 const authStore = useAuthStore()
 const activeTab = ref('profile')
 
+// ========== 修改密码 ==========
 const pwdForm = reactive({ oldPassword: '', newPassword: '', confirmPassword: '' })
 const pwdSaving = ref(false)
 const pwdError = ref('')
@@ -167,6 +369,99 @@ async function changePassword() {
     pwdError.value = err.message || '修改失败'
   } finally {
     pwdSaving.value = false
+  }
+}
+
+// ========== 系统配置（支付 & 物流） ==========
+const configLoading = ref(false)
+const configSaving = ref(false)
+const configMsg = ref('')
+const configMsgType = ref<'success' | 'error'>('success')
+let configLoaded = false
+
+const paymentForm = reactive({
+  wechat_app_id: '',
+  wechat_mch_id: '',
+  wechat_api_key: '',
+  wechat_enabled: false,
+  alipay_app_id: '',
+  alipay_private_key: '',
+  alipay_public_key: '',
+  alipay_enabled: false,
+})
+
+const shippingForm = reactive({
+  default_company: '',
+  default_fee: 0,
+  free_threshold: 0,
+  sender_province: '',
+  sender_city: '',
+  sender_district: '',
+  sender_address: '',
+  sender_name: '',
+  sender_phone: '',
+})
+
+function switchTab(tab: string) {
+  activeTab.value = tab
+  configMsg.value = ''
+  if (!configLoaded && (tab === 'payment' || tab === 'shipping')) {
+    loadConfigs()
+  }
+}
+
+async function loadConfigs() {
+  configLoading.value = true
+  try {
+    const res: any = await api.get('/admin/settings')
+    const data = res.data || {}
+    // 填充支付配置
+    if (data.payment) {
+      Object.keys(paymentForm).forEach((k) => {
+        if (k in data.payment) (paymentForm as any)[k] = data.payment[k]
+      })
+    }
+    // 填充物流配置
+    if (data.shipping) {
+      Object.keys(shippingForm).forEach((k) => {
+        if (k in data.shipping) (shippingForm as any)[k] = data.shipping[k]
+      })
+    }
+    configLoaded = true
+  } catch {
+    // 第一次加载可能没有数据，忽略
+  } finally {
+    configLoading.value = false
+  }
+}
+
+async function savePaymentConfig() {
+  configMsg.value = ''
+  configSaving.value = true
+  try {
+    await api.put('/admin/settings/payment', { ...paymentForm })
+    configMsg.value = '支付配置保存成功'
+    configMsgType.value = 'success'
+  } catch (err: any) {
+    configMsg.value = err.message || '保存失败'
+    configMsgType.value = 'error'
+  } finally {
+    configSaving.value = false
+  }
+}
+
+async function saveShippingConfig() {
+  configMsg.value = ''
+  configSaving.value = true
+  try {
+    await api.put('/admin/settings/shipping', { ...shippingForm })
+    configMsg.value = '物流配置保存成功'
+    configMsgType.value = 'success'
+  } catch (err: any) {
+    configMsg.value = err.message || '保存失败'
+    configMsgType.value = 'error'
+  } finally {
+    configSaving.value = false
   }
 }
 </script>

@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import * as adminService from '../services/admin.service.js'
 import * as reportService from '../services/report.service.js'
+import * as settingService from '../services/setting.service.js'
 import { success, paginated } from '../utils/response.js'
 import { validate } from '../utils/validate.js'
 import { paginationSchema } from '../utils/pagination.js'
@@ -75,6 +76,34 @@ export default async function adminRoutes(app: FastifyInstance) {
     )
     await adminService.updateOrderStatus(orderId, status)
     return success(null, '状态更新成功')
+  })
+
+  /** PUT /api/v1/admin/orders/:id/ship — 确认发货（含物流信息） */
+  app.put<{ Params: { id: string } }>('/orders/:id/ship', async (request) => {
+    const orderId = Number(request.params.id)
+    const data = validate(
+      z.object({
+        shippingCompany: z.string().min(1, '请填写物流公司'),
+        trackingNo: z.string().min(1, '请填写物流单号'),
+      }),
+      request.body,
+    )
+    await adminService.shipOrder(orderId, data.shippingCompany, data.trackingNo)
+    return success(null, '发货成功')
+  })
+
+  /** PUT /api/v1/admin/orders/:id/shipping — 更新物流信息 */
+  app.put<{ Params: { id: string } }>('/orders/:id/shipping', async (request) => {
+    const orderId = Number(request.params.id)
+    const data = validate(
+      z.object({
+        shippingCompany: z.string().optional(),
+        trackingNo: z.string().optional(),
+      }),
+      request.body,
+    )
+    await adminService.updateShippingInfo(orderId, data)
+    return success(null, '物流信息已更新')
   })
 
   // ========== 商品管理 ==========
@@ -208,5 +237,89 @@ export default async function adminRoutes(app: FastifyInstance) {
     const params = validate(reportDateSchema, request.query)
     const data = await reportService.getReturnsReport(params.startDate, params.endDate)
     return success(data)
+  })
+
+  // ========== 系统配置 ==========
+
+  /** GET /api/v1/admin/settings — 获取所有系统配置 */
+  app.get('/settings', async () => {
+    const configs = await settingService.getAllConfigs()
+    return success(configs)
+  })
+
+  /** GET /api/v1/admin/settings/:group — 获取指定分组配置 */
+  app.get<{ Params: { group: string } }>('/settings/:group', async (request) => {
+    const configs = await settingService.getConfigsByGroup(request.params.group)
+    return success(configs)
+  })
+
+  /** PUT /api/v1/admin/settings/:group — 更新指定分组配置 */
+  app.put<{ Params: { group: string } }>('/settings/:group', async (request) => {
+    const group = request.params.group
+    const allowedGroups = ['payment', 'shipping']
+    if (!allowedGroups.includes(group)) {
+      return success(null, '不支持的配置分组')
+    }
+    const data = validate(z.record(z.string(), z.any()), request.body)
+    await settingService.updateConfigs(group, data)
+    return success(null, '保存成功')
+  })
+
+  // ========== 退款/售后管理 ==========
+
+  /** GET /api/v1/admin/refunds — 退款列表 */
+  app.get('/refunds', async (request) => {
+    const params = validate(
+      paginationSchema.extend({
+        status: z.coerce.number().int().optional(),
+      }),
+      request.query,
+    )
+    const { list, total } = await adminService.getRefundList(params.page, params.pageSize, params.status)
+    return paginated(list, total, params.page, params.pageSize)
+  })
+
+  /** GET /api/v1/admin/refunds/:id — 退款详情 */
+  app.get<{ Params: { id: string } }>('/refunds/:id', async (request) => {
+    const refund = await adminService.getRefundDetail(Number(request.params.id))
+    return success(refund)
+  })
+
+  /** PUT /api/v1/admin/refunds/:id/approve — 同意退款 */
+  app.put<{ Params: { id: string } }>('/refunds/:id/approve', async (request) => {
+    await adminService.approveRefund(Number(request.params.id))
+    return success(null, '已同意退款')
+  })
+
+  /** PUT /api/v1/admin/refunds/:id/reject — 拒绝退款 */
+  app.put<{ Params: { id: string } }>('/refunds/:id/reject', async (request) => {
+    await adminService.rejectRefund(Number(request.params.id))
+    return success(null, '已拒绝退款')
+  })
+
+  /** PUT /api/v1/admin/refunds/:id/complete — 确认退款完成 */
+  app.put<{ Params: { id: string } }>('/refunds/:id/complete', async (request) => {
+    await adminService.completeRefund(Number(request.params.id))
+    return success(null, '退款已完成')
+  })
+
+  // ========== 评价管理 ==========
+
+  /** GET /api/v1/admin/reviews — 评价列表 */
+  app.get('/reviews', async (request) => {
+    const params = validate(
+      paginationSchema.extend({
+        productId: z.coerce.number().int().optional(),
+      }),
+      request.query,
+    )
+    const { list, total } = await adminService.getReviewList(params.page, params.pageSize, params.productId)
+    return paginated(list, total, params.page, params.pageSize)
+  })
+
+  /** DELETE /api/v1/admin/reviews/:id — 删除评价 */
+  app.delete<{ Params: { id: string } }>('/reviews/:id', async (request) => {
+    await adminService.deleteReview(Number(request.params.id))
+    return success(null, '删除成功')
   })
 }

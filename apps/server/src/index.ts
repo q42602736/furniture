@@ -10,6 +10,9 @@ import orderRoutes from './routes/order.routes.js'
 import bannerRoutes from './routes/banner.routes.js'
 import addressRoutes from './routes/address.routes.js'
 import favoriteRoutes from './routes/favorite.routes.js'
+import brandRoutes from './routes/brand.routes.js'
+import recommendationRoutes from './routes/recommendation.routes.js'
+import announcementRoutes from './routes/announcement.routes.js'
 import adminAuthRoutes from './routes/admin-auth.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 
@@ -51,6 +54,9 @@ app.get('/api/v1', async () => {
       banners: '/api/v1/banners',
       addresses: '/api/v1/addresses',
       favorites: '/api/v1/favorites',
+      brands: '/api/v1/brands',
+      recommendations: '/api/v1/recommendations',
+      announcements: '/api/v1/announcements',
       adminAuth: '/api/v1/admin-auth',
       admin: '/api/v1/admin',
     },
@@ -66,6 +72,9 @@ await app.register(orderRoutes, { prefix: '/api/v1/orders' })
 await app.register(bannerRoutes, { prefix: '/api/v1/banners' })
 await app.register(addressRoutes, { prefix: '/api/v1/addresses' })
 await app.register(favoriteRoutes, { prefix: '/api/v1/favorites' })
+await app.register(brandRoutes, { prefix: '/api/v1/brands' })
+await app.register(recommendationRoutes, { prefix: '/api/v1/recommendations' })
+await app.register(announcementRoutes, { prefix: '/api/v1/announcements' })
 await app.register(adminAuthRoutes, { prefix: '/api/v1/admin-auth' })
 await app.register(adminRoutes, { prefix: '/api/v1/admin' })
 

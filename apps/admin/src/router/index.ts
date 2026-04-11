@@ -40,6 +40,13 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/ecommerce/CategoryList.vue'),
         meta: { pageTitle: '分类管理', breadcrumbs: ['电商管理', '分类管理'] },
       },
+      // 品牌管理
+      {
+        path: '/brands',
+        name: 'brands',
+        component: () => import('@/views/ecommerce/BrandList.vue'),
+        meta: { pageTitle: '品牌管理', breadcrumbs: ['电商管理', '品牌管理'] },
+      },
       // 订单管理
       {
         path: '/orders',
@@ -72,6 +79,34 @@ const routes: Array<RouteRecordRaw> = [
         name: 'banners',
         component: () => import('@/views/content/BannerList.vue'),
         meta: { pageTitle: 'Banner 管理', breadcrumbs: ['用户与内容', 'Banner 管理'] },
+      },
+      // 推荐位管理
+      {
+        path: '/recommendations',
+        name: 'recommendations',
+        component: () => import('@/views/content/RecommendationList.vue'),
+        meta: { pageTitle: '推荐位管理', breadcrumbs: ['用户与内容', '推荐位管理'] },
+      },
+      // 公告管理
+      {
+        path: '/announcements',
+        name: 'announcements',
+        component: () => import('@/views/content/AnnouncementList.vue'),
+        meta: { pageTitle: '公告管理', breadcrumbs: ['用户与内容', '公告管理'] },
+      },
+      // 售后退款管理
+      {
+        path: '/refunds',
+        name: 'refunds',
+        component: () => import('@/views/ecommerce/RefundList.vue'),
+        meta: { pageTitle: '售后管理', breadcrumbs: ['电商管理', '售后管理'] },
+      },
+      // 评价管理
+      {
+        path: '/reviews',
+        name: 'reviews',
+        component: () => import('@/views/ecommerce/ReviewList.vue'),
+        meta: { pageTitle: '评价管理', breadcrumbs: ['电商管理', '评价管理'] },
       },
       // 系统设置
       {

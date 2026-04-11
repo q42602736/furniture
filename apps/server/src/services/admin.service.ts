@@ -172,6 +172,39 @@ export async function updateOrderStatus(orderId: number, status: number) {
   await prisma.order.update({ where: { id: orderId }, data: updateData })
 }
 
+/** 发货并填写物流信息 */
+export async function shipOrder(
+  orderId: number,
+  shippingCompany: string,
+  trackingNo: string,
+) {
+  const order = await prisma.order.findUnique({ where: { id: orderId } })
+  if (!order) notFound('订单不存在')
+  if (order!.status !== 1) badRequest('只有待发货订单可以发货')
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      status: 2,
+      shippedAt: new Date(),
+      shippingCompany,
+      trackingNo,
+    },
+  })
+}
+
+/** 更新物流信息（已发货订单修改单号） */
+export async function updateShippingInfo(
+  orderId: number,
+  data: { shippingCompany?: string; trackingNo?: string },
+) {
+  const order = await prisma.order.findUnique({ where: { id: orderId } })
+  if (!order) notFound('订单不存在')
+  if (![2, 3].includes(order!.status)) badRequest('只有已发货/已完成订单可以修改物流信息')
+
+  await prisma.order.update({ where: { id: orderId }, data })
+}
+
 // ========== 商品管理 ==========
 
 /** 获取商品列表（管理员，支持筛选） */
@@ -261,6 +294,132 @@ export async function updateProductImages(productId: number, images: { url: stri
     }),
   ])
   return prisma.productImage.findMany({ where: { productId }, orderBy: { sort: 'asc' } })
+}
+
+// ========== 退款/售后管理 ==========
+
+/** 获取退款列表 */
+export async function getRefundList(page: number, pageSize: number, status?: number) {
+  const where: any = {}
+  if (status !== undefined) where.status = status
+
+  const [list, total] = await Promise.all([
+    prisma.refund.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: getSkip(page, pageSize),
+      take: pageSize,
+      include: {
+        order: {
+          select: {
+            id: true,
+            orderNo: true,
+            totalAmount: true,
+            status: true,
+            user: { select: { id: true, nickname: true, phone: true } },
+          },
+        },
+      },
+    }),
+    prisma.refund.count({ where }),
+  ])
+  return { list, total }
+}
+
+/** 获取退款详情 */
+export async function getRefundDetail(refundId: number) {
+  const refund = await prisma.refund.findUnique({
+    where: { id: refundId },
+    include: {
+      order: {
+        include: {
+          user: { select: { id: true, nickname: true, phone: true } },
+          items: {
+            include: {
+              product: { select: { id: true, name: true, mainImage: true } },
+              sku: { select: { id: true, name: true } },
+            },
+          },
+        },
+      },
+    },
+  })
+  if (!refund) notFound('退款记录不存在')
+  return refund
+}
+
+/** 审批退款 — 同意 */
+export async function approveRefund(refundId: number) {
+  const refund = await prisma.refund.findUnique({ where: { id: refundId } })
+  if (!refund) notFound('退款记录不存在')
+  if (refund!.status !== 0) badRequest('只能审批申请中的退款')
+
+  await prisma.$transaction(async (tx) => {
+    // 更新退款状态为已同意
+    await tx.refund.update({ where: { id: refundId }, data: { status: 1 } })
+    // 将订单状态改为售后中
+    await tx.order.update({ where: { id: refund!.orderId }, data: { status: 5 } })
+  })
+}
+
+/** 审批退款 — 拒绝 */
+export async function rejectRefund(refundId: number) {
+  const refund = await prisma.refund.findUnique({ where: { id: refundId } })
+  if (!refund) notFound('退款记录不存在')
+  if (refund!.status !== 0) badRequest('只能审批申请中的退款')
+
+  await prisma.refund.update({ where: { id: refundId }, data: { status: 2 } })
+}
+
+/** 确认退款完成 */
+export async function completeRefund(refundId: number) {
+  const refund = await prisma.refund.findUnique({ where: { id: refundId } })
+  if (!refund) notFound('退款记录不存在')
+  if (refund!.status !== 1) badRequest('只有已同意的退款可以确认退款')
+
+  await prisma.$transaction(async (tx) => {
+    await tx.refund.update({ where: { id: refundId }, data: { status: 3 } })
+    // 恢复库存
+    const items = await tx.orderItem.findMany({ where: { orderId: refund!.orderId } })
+    for (const item of items) {
+      await tx.productSku.update({
+        where: { id: item.skuId },
+        data: { stock: { increment: item.quantity } },
+      })
+    }
+    // 订单状态改为已取消
+    await tx.order.update({ where: { id: refund!.orderId }, data: { status: 4 } })
+  })
+}
+
+// ========== 评价管理 ==========
+
+/** 获取评价列表 */
+export async function getReviewList(page: number, pageSize: number, productId?: number) {
+  const where: any = {}
+  if (productId) where.productId = productId
+
+  const [list, total] = await Promise.all([
+    prisma.review.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: getSkip(page, pageSize),
+      take: pageSize,
+      include: {
+        user: { select: { id: true, nickname: true, phone: true, avatar: true } },
+        product: { select: { id: true, name: true, mainImage: true } },
+      },
+    }),
+    prisma.review.count({ where }),
+  ])
+  return { list, total }
+}
+
+/** 删除评价 */
+export async function deleteReview(reviewId: number) {
+  const review = await prisma.review.findUnique({ where: { id: reviewId } })
+  if (!review) notFound('评价不存在')
+  await prisma.review.delete({ where: { id: reviewId } })
 }
 
 /** 创建商品 */

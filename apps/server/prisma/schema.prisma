@@ -124,6 +124,7 @@ model Product {
   reviews    Review[]
   favorites  Favorite[]
   cartItems  CartItem[]
+  recommendations Recommendation[]
 
   @@map("products")
 }
@@ -185,6 +186,8 @@ model Order {
   receiverPhone String   @db.VarChar(20) @map("receiver_phone")
   receiverAddr  String   @db.VarChar(500) @map("receiver_addr")
   remark        String?  @db.VarChar(500)
+  shippingCompany String? @db.VarChar(50) @map("shipping_company") // 物流公司
+  trackingNo    String?  @db.VarChar(100) @map("tracking_no")      // 物流单号
   paidAt        DateTime? @map("paid_at")
   shippedAt     DateTime? @map("shipped_at")
   completedAt   DateTime? @map("completed_at")
@@ -282,6 +285,37 @@ model Banner {
   @@map("banners")
 }
 
+/// 推荐位（首页/各页面推荐商品）
+model Recommendation {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(100) // 推荐位名称
+  position  String   @db.VarChar(50)  // home_featured=首页精选 home_hot=首页热门 home_new=新品推荐
+  productId Int      @map("product_id")
+  image     String?  @db.VarChar(500) // 自定义封面图（为空则使用商品主图）
+  sort      Int      @default(0)
+  status    Int      @default(1) // 1=显示 0=隐藏
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("recommendations")
+}
+
+/// 公告管理
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(200)
+  content   String   @db.Text            // 公告正文
+  type      String   @default("notice") @db.VarChar(30) // notice=公告 promotion=促销 system=系统通知
+  sort      Int      @default(0)
+  status    Int      @default(1)         // 1=发布 0=草稿
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("announcements")
+}
+
 /// 商品评价
 model Review {
   id        Int      @id @default(autoincrement())
@@ -296,6 +330,18 @@ model Review {
   product Product @relation(fields: [productId], references: [id])
 
   @@map("reviews")
+}
+
+/// 系统配置（键值对存储）
+model SystemConfig {
+  id        Int      @id @default(autoincrement())
+  group     String   @db.VarChar(50) // payment / shipping / site
+  key       String   @unique @db.VarChar(100)
+  value     String   @db.Text // JSON 格式存储
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_configs")
 }
 
 /// 用户收藏

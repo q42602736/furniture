@@ -212,6 +212,39 @@
           </div>
           <!--end::买家信息卡片-->
         </div>
+
+        <!--begin::物流信息卡片-->
+        <div v-if="order.status >= 2 && order.status !== 4" class="card card-flush mb-7">
+          <div class="card-header align-items-center py-5">
+            <div class="card-title">
+              <KTIcon icon-name="delivery" icon-class="fs-2 text-gray-500 me-2" />
+              <h2>物流信息</h2>
+            </div>
+            <div class="card-toolbar" v-if="[2, 3].includes(order.status)">
+              <button class="btn btn-sm btn-light-primary" @click="openShipModal(true)">
+                <KTIcon icon-name="pencil" icon-class="fs-5 me-1" />
+                修改物流
+              </button>
+            </div>
+          </div>
+          <div class="card-body pt-0">
+            <div class="d-flex flex-wrap gap-10">
+              <div>
+                <div class="text-muted fs-7 mb-1">物流公司</div>
+                <div class="fw-bold text-gray-800 fs-6">{{ order.shippingCompany || '-' }}</div>
+              </div>
+              <div>
+                <div class="text-muted fs-7 mb-1">物流单号</div>
+                <div class="fw-bold text-gray-800 fs-6">{{ order.trackingNo || '-' }}</div>
+              </div>
+              <div>
+                <div class="text-muted fs-7 mb-1">发货时间</div>
+                <div class="fw-bold text-gray-800 fs-6">{{ formatTime(order.shippedAt) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!--end::物流信息卡片-->
       </div>
       <!--end::订单概览-->
 
@@ -270,19 +303,69 @@
       </div>
       <!--end::商品明细-->
     </template>
+
+    <!--begin::发货/修改物流弹窗-->
+    <div class="modal fade" ref="shipModalRef" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ isEditShipping ? '修改物流信息' : '确认发货' }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-5">
+              <label class="form-label required">物流公司</label>
+              <select v-model="shipForm.shippingCompany" class="form-select form-select-solid">
+                <option value="">请选择物流公司</option>
+                <option value="顺丰速运">顺丰速运</option>
+                <option value="中通快递">中通快递</option>
+                <option value="圆通速递">圆通速递</option>
+                <option value="韵达快递">韵达快递</option>
+                <option value="申通快递">申通快递</option>
+                <option value="极兔速递">极兔速递</option>
+                <option value="京东物流">京东物流</option>
+                <option value="邮政EMS">邮政EMS</option>
+                <option value="德邦快递">德邦快递</option>
+              </select>
+            </div>
+            <div class="mb-5">
+              <label class="form-label required">物流单号</label>
+              <input v-model="shipForm.trackingNo" class="form-control form-control-solid" placeholder="请输入物流单号" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-light" data-bs-dismiss="modal">取消</button>
+            <button class="btn btn-primary" :disabled="shipSaving" @click="submitShip">
+              <span v-if="shipSaving" class="spinner-border spinner-border-sm align-middle me-1"></span>
+              {{ shipSaving ? '提交中...' : '确认' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--end::发货/修改物流弹窗-->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/core/api'
+
+declare const bootstrap: any
 
 const route = useRoute()
 const router = useRouter()
 const order = ref<any>(null)
 const loading = ref(true)
 const activeTab = ref('summary')
+
+// 发货弹窗
+const shipModalRef = ref<HTMLElement>()
+const shipForm = reactive({ shippingCompany: '', trackingNo: '' })
+const shipSaving = ref(false)
+const isEditShipping = ref(false)
+let shipModal: any = null
 
 const statusMap: Record<number, string> = { 0: '待付款', 1: '待发货', 2: '待收货', 3: '已完成', 4: '已取消', 5: '售后中' }
 const statusColorMap: Record<number, string> = { 0: 'warning', 1: 'info', 2: 'primary', 3: 'success', 4: 'secondary', 5: 'danger' }
@@ -303,12 +386,48 @@ async function loadOrder() {
   }
 }
 
-async function shipOrder() {
-  if (!confirm('确认发货？')) return
+function openShipModal(edit = false) {
+  isEditShipping.value = edit
+  if (edit && order.value) {
+    shipForm.shippingCompany = order.value.shippingCompany || ''
+    shipForm.trackingNo = order.value.trackingNo || ''
+  } else {
+    shipForm.shippingCompany = ''
+    shipForm.trackingNo = ''
+  }
+  nextTick(() => {
+    if (!shipModal) shipModal = new bootstrap.Modal(shipModalRef.value)
+    shipModal.show()
+  })
+}
+
+async function submitShip() {
+  if (!shipForm.shippingCompany || !shipForm.trackingNo) {
+    alert('请填写物流公司和物流单号')
+    return
+  }
+  shipSaving.value = true
   try {
-    await api.put(`/admin/orders/${route.params.id}/status`, { status: 2 })
+    if (isEditShipping.value) {
+      await api.put(`/admin/orders/${route.params.id}/shipping`, {
+        shippingCompany: shipForm.shippingCompany,
+        trackingNo: shipForm.trackingNo,
+      })
+    } else {
+      await api.put(`/admin/orders/${route.params.id}/ship`, {
+        shippingCompany: shipForm.shippingCompany,
+        trackingNo: shipForm.trackingNo,
+      })
+    }
+    shipModal?.hide()
     await loadOrder()
-  } catch {}
+  } catch {} finally {
+    shipSaving.value = false
+  }
+}
+
+function shipOrder() {
+  openShipModal(false)
 }
 
 async function completeOrder() {

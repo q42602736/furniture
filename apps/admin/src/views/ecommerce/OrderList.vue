@@ -141,12 +141,55 @@
       <!--end::卡片内容-->
     </div>
     <!--end::订单列表卡片-->
+
+    <!--begin::发货弹窗-->
+    <div class="modal fade" ref="shipModalRef" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">确认发货</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-5">
+              <label class="form-label required">物流公司</label>
+              <select v-model="shipForm.shippingCompany" class="form-select form-select-solid">
+                <option value="">请选择物流公司</option>
+                <option value="顺丰速运">顺丰速运</option>
+                <option value="中通快递">中通快递</option>
+                <option value="圆通速递">圆通速递</option>
+                <option value="韵达快递">韵达快递</option>
+                <option value="申通快递">申通快递</option>
+                <option value="极兔速递">极兔速递</option>
+                <option value="京东物流">京东物流</option>
+                <option value="邮政EMS">邮政EMS</option>
+                <option value="德邦快递">德邦快递</option>
+              </select>
+            </div>
+            <div class="mb-5">
+              <label class="form-label required">物流单号</label>
+              <input v-model="shipForm.trackingNo" class="form-control form-control-solid" placeholder="请输入物流单号" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-light" data-bs-dismiss="modal">取消</button>
+            <button class="btn btn-primary" :disabled="shipSaving" @click="submitShip">
+              <span v-if="shipSaving" class="spinner-border spinner-border-sm align-middle me-1"></span>
+              {{ shipSaving ? '提交中...' : '确认发货' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--end::发货弹窗-->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import api from '@/core/api'
+
+declare const bootstrap: any
 
 const list = ref<any[]>([])
 const total = ref(0)
@@ -193,12 +236,39 @@ async function loadData(p = 1) {
   }
 }
 
-async function shipOrder(id: number) {
-  if (!confirm('确认发货？')) return
+// 发货弹窗相关
+const shipModalRef = ref<HTMLElement | null>(null)
+const shipForm = reactive({ shippingCompany: '', trackingNo: '' })
+const shipSaving = ref(false)
+const shipOrderId = ref(0)
+let shipModalInstance: any = null
+
+function shipOrder(id: number) {
+  shipOrderId.value = id
+  shipForm.shippingCompany = ''
+  shipForm.trackingNo = ''
+  if (!shipModalInstance && shipModalRef.value) {
+    shipModalInstance = new bootstrap.Modal(shipModalRef.value)
+  }
+  shipModalInstance?.show()
+}
+
+async function submitShip() {
+  if (!shipForm.shippingCompany || !shipForm.trackingNo) {
+    alert('请填写物流公司和物流单号')
+    return
+  }
+  shipSaving.value = true
   try {
-    await api.put(`/admin/orders/${id}/status`, { status: 2 })
+    await api.put(`/admin/orders/${shipOrderId.value}/ship`, {
+      shippingCompany: shipForm.shippingCompany,
+      trackingNo: shipForm.trackingNo,
+    })
+    shipModalInstance?.hide()
     await loadData(page.value)
-  } catch {}
+  } catch {} finally {
+    shipSaving.value = false
+  }
 }
 
 async function cancelOrder(id: number) {
