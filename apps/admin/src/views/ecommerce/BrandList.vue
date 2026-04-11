@@ -43,7 +43,7 @@
                 <td>
                   <div class="d-flex align-items-center">
                     <div class="symbol symbol-45px me-4">
-                      <img v-if="item.logo" :src="item.logo" class="symbol-label" style="object-fit: contain" />
+                      <img v-if="item.logo" :src="item.logo" class="symbol-label" style="object-fit: contain" @error="onImgError" />
                       <div v-else class="symbol-label bg-light-primary">
                         <KTIcon icon-name="abstract-26" icon-class="fs-2 text-primary" />
                       </div>
@@ -96,7 +96,7 @@
               <label class="form-label">品牌 Logo URL</label>
               <input v-model="form.logo" class="form-control form-control-solid" placeholder="请输入 Logo 图片地址" />
               <div v-if="form.logo" class="mt-3">
-                <img :src="form.logo" class="rounded border" style="max-height: 80px; object-fit: contain" />
+                <img :src="form.logo" class="rounded border" style="max-height: 80px; object-fit: contain" @error="onImgError" />
               </div>
             </div>
             <div class="mb-5">
@@ -130,6 +130,11 @@ const modalRef = ref<HTMLElement>()
 const form = reactive({ id: 0, name: '', logo: '', sort: 0 })
 const saving = ref(false)
 let modal: any = null
+
+function onImgError(e: Event) {
+  const el = e.target as HTMLImageElement
+  el.style.display = 'none'
+}
 
 function formatDate(dateStr: string) {
   if (!dateStr) return '-'

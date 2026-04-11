@@ -52,7 +52,7 @@
               <td>
                 <div class="d-flex align-items-center">
                   <div class="symbol symbol-40px me-3">
-                    <img v-if="item.product?.mainImage" :src="item.product.mainImage" class="object-fit-cover" alt="" />
+                    <img v-if="item.product?.mainImage" :src="item.product.mainImage" class="object-fit-cover" alt="" @error="onImgError" />
                     <span v-else class="symbol-label bg-light-primary text-primary fw-bold">
                       {{ item.product?.name?.charAt(0) || '?' }}
                     </span>
@@ -82,6 +82,7 @@
                       :src="img"
                       class="rounded"
                       style="width:32px;height:32px;object-fit:cover"
+                      @error="onImgError"
                     />
                     <span v-if="parseImages(item.images).length > 3" class="badge badge-light align-self-center">
                       +{{ parseImages(item.images).length - 3 }}
@@ -143,6 +144,11 @@ const page = ref(1)
 const pageSize = 10
 const loading = ref(false)
 const filterKeyword = ref('')
+
+function onImgError(e: Event) {
+  const el = e.target as HTMLImageElement
+  el.style.display = 'none'
+}
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
 const visiblePages = computed(() => {

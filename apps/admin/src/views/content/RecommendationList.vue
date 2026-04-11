@@ -54,7 +54,7 @@
                 <td>
                   <div class="d-flex align-items-center">
                     <div class="symbol symbol-40px me-3">
-                      <img v-if="item.image || item.product?.mainImage" :src="item.image || item.product?.mainImage" class="symbol-label" style="object-fit:cover" />
+                      <img v-if="item.image || item.product?.mainImage" :src="item.image || item.product?.mainImage" class="symbol-label" style="object-fit:cover" @error="onImgError" />
                       <span v-else class="symbol-label bg-light-primary text-primary fs-7 fw-bold">{{ (item.product?.name || '?')[0] }}</span>
                     </div>
                     <div>
@@ -115,7 +115,7 @@
               <label class="form-label">自定义封面图</label>
               <input v-model="form.image" class="form-control form-control-solid" placeholder="留空使用商品主图" />
               <div v-if="form.image" class="mt-3">
-                <img :src="form.image" class="rounded border" style="max-height:100px" />
+                <img :src="form.image" class="rounded border" style="max-height:100px" @error="onImgError" />
               </div>
             </div>
             <div class="row mb-5">
@@ -166,6 +166,11 @@ const modalRef = ref<HTMLElement>()
 const form = ref({ id: 0, title: '', position: '', productId: 0, image: '', sort: 0, status: 1 })
 const saving = ref(false)
 let modal: any = null
+
+function onImgError(e: Event) {
+  const el = e.target as HTMLImageElement
+  el.style.display = 'none'
+}
 
 const filteredList = computed(() => {
   if (!filterPosition.value) return list.value

@@ -26,7 +26,16 @@
               <div class="card-body p-0">
                 <div class="overlay overflow-hidden">
                   <div class="overlay-wrapper">
-                    <img :src="item.imageUrl" class="w-100 rounded-top" style="height:180px;object-fit:cover" />
+                    <img
+                      v-if="item.imageUrl"
+                      :src="item.imageUrl"
+                      class="w-100 rounded-top"
+                      style="height:180px;object-fit:cover"
+                      @error="onImgError"
+                    />
+                    <div v-else class="w-100 rounded-top bg-light d-flex align-items-center justify-content-center" style="height:180px">
+                      <KTIcon icon-name="picture" icon-class="fs-2x text-gray-400" />
+                    </div>
                   </div>
                   <div class="overlay-layer bg-dark bg-opacity-25 align-items-end justify-content-center p-4">
                     <a href="javascript:;" class="btn btn-sm btn-primary me-2" @click="openEdit(item)">
@@ -77,7 +86,7 @@
               <label class="form-label required">图片URL</label>
               <input v-model="form.imageUrl" class="form-control form-control-solid" />
               <div v-if="form.imageUrl" class="mt-3">
-                <img :src="form.imageUrl" class="rounded border" style="max-height:120px" />
+                <img :src="form.imageUrl" class="rounded border" style="max-height:120px" @error="onImgError" />
               </div>
             </div>
             <div class="mb-5">
@@ -123,6 +132,11 @@ const modalRef = ref<HTMLElement>()
 const form = reactive({ id: 0, title: '', imageUrl: '', link: '', sort: 0, status: 1 })
 const saving = ref(false)
 let modal: any = null
+
+function onImgError(e: Event) {
+  const el = e.target as HTMLImageElement
+  el.style.display = 'none'
+}
 
 async function loadData() {
   try {

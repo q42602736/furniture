@@ -276,6 +276,11 @@
                     <a v-if="item.image" class="symbol symbol-50px me-3">
                       <span class="symbol-label" :style="{ backgroundImage: `url(${item.image})` }"></span>
                     </a>
+                    <span v-else class="symbol symbol-50px me-3">
+                      <span class="symbol-label bg-light-primary">
+                        <KTIcon icon-name="handcart" icon-class="fs-2 text-primary" />
+                      </span>
+                    </span>
                     <span class="fw-bold text-gray-800">{{ item.name }}</span>
                   </div>
                 </td>
