@@ -166,7 +166,7 @@ async function loadCart() {
           price: Number(item.sku?.price || 0),
           quantity: item.quantity,
           selected: false,
-          image: item.sku?.image || '',
+          image: item.sku?.image || item.product?.mainImage || '',
         })
       }
     }

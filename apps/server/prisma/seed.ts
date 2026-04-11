@@ -129,12 +129,12 @@ async function main() {
       })
     }
 
-    // 创建 SKU
+    // 创建 SKU（含图片）
     const basePrice = p.price
     await prisma.productSku.createMany({
       data: [
-        { productId: product.id, name: '标准款', price: basePrice, stock: Math.floor(Math.random() * 100) + 20 },
-        { productId: product.id, name: '升级款', price: Math.round(basePrice * 1.2), stock: Math.floor(Math.random() * 50) + 10 },
+        { productId: product.id, name: '标准款', price: basePrice, stock: Math.floor(Math.random() * 100) + 20, image: img(`${p.seed}-sku-std`, 400, 400) },
+        { productId: product.id, name: '升级款', price: Math.round(basePrice * 1.2), stock: Math.floor(Math.random() * 50) + 10, image: img(`${p.seed}-sku-pro`, 400, 400) },
       ],
     })
   }

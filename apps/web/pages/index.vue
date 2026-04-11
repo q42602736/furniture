@@ -109,7 +109,7 @@
           class="group bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-lg transition-all cursor-pointer"
         >
           <div class="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
-            <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
+            <img v-if="product.mainImage" :src="product.mainImage" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
             <span v-else class="text-gray-400 text-sm">商品图片</span>
             <div class="absolute top-2 left-2 bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded">在售</div>
           </div>
@@ -134,10 +134,11 @@
           <div class="flex gap-4 animate-marquee">
             <div
               v-for="brand in brandList"
-              :key="brand"
-              class="shrink-0 w-[140px] h-[80px] bg-white rounded-lg border border-gray-100 flex items-center justify-center hover:shadow-md hover:border-orange-200 transition cursor-pointer"
+              :key="brand.id || brand.name"
+              class="shrink-0 w-[140px] h-[80px] bg-white rounded-lg border border-gray-100 flex items-center justify-center hover:shadow-md hover:border-orange-200 transition cursor-pointer overflow-hidden"
             >
-              <span class="text-sm text-gray-500 font-medium">{{ brand }}</span>
+              <img v-if="brand.logo" :src="brand.logo" :alt="brand.name" class="w-full h-full object-contain p-2" @error="onImgError" />
+              <span v-else class="text-sm text-gray-500 font-medium">{{ brand.name }}</span>
             </div>
           </div>
         </div>
@@ -197,7 +198,7 @@
             class="bg-white border border-gray-100 rounded-lg overflow-hidden hover:shadow-md transition cursor-pointer group"
           >
             <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-              <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
+              <img v-if="product.mainImage" :src="product.mainImage" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
               <span v-else class="text-gray-300 text-xs">{{ floor.name }}商品图片</span>
             </div>
             <div class="p-2.5">
@@ -268,11 +269,19 @@ if (import.meta.client) {
 
 const designStyles = ['意式美学', 'INS奶油风', '现代艺术', '木本侘寂']
 
-const brandList = [
-  '欧瑞仕', '卡琪朵', '慕梵希', '罗曼仕',
-  'Milantti 米兰蒂', '檀雅居', '诺美帝斯', '歌迪',
-  '欧瑞仕', '卡琪朵', '慕梵希', '罗曼仕',
-]
+// 从 API 获取品牌列表
+const brandList = ref<any[]>([
+  { name: '欧瑞仕' }, { name: '卡琪朵' }, { name: '慕梵希' }, { name: '罗曼仕' },
+])
+if (import.meta.client) {
+  get('/v1/brands').then((res: any) => {
+    const list = res?.data?.list || res?.data || []
+    if (list.length) {
+      // 复制一份实现无缝滚动
+      brandList.value = [...list, ...list]
+    }
+  }).catch(() => {})
+}
 
 const { categories } = useCategories()
 const mainCategories = computed(() => categories.value.map(c => ({ name: c.name, slug: c.slug })))

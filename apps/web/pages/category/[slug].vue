@@ -167,7 +167,7 @@
           class="bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-lg transition-all group"
         >
           <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative">
-            <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
+            <img v-if="product.mainImage" :src="product.mainImage" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
             <span v-else class="text-gray-300 text-sm">商品图片</span>
           </div>
           <div class="p-3">
@@ -192,7 +192,7 @@
           class="bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-lg transition-all flex group"
         >
           <div class="w-[220px] h-[220px] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center shrink-0 relative">
-            <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
+            <img v-if="product.mainImage" :src="product.mainImage" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
             <span v-else class="text-gray-300 text-sm">商品图片</span>
           </div>
           <div class="flex-1 p-5 flex flex-col justify-between">
