@@ -21,11 +21,13 @@ const app = Fastify({
 })
 
 // 注册插件
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:3000', 'http://localhost:3003']
+
 await app.register(cors, {
-  origin: [
-    'http://localhost:3000', // C 端前台
-    'http://localhost:3003', // 管理后台
-  ],
+  origin: allowedOrigins,
+  credentials: true,
 })
 
 await app.register(jwt, {
