@@ -109,17 +109,18 @@
         <h2 class="text-lg font-bold text-gray-800 mb-4">猜你喜欢</h2>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
           <NuxtLink
-            v-for="i in 5"
-            :key="i"
-            to="#"
+            v-for="rec in recommendProducts"
+            :key="rec.id"
+            :to="`/product/${rec.id}`"
             class="bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-lg transition-all group"
           >
-            <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-              <span class="text-gray-300 text-xs">推荐图片</span>
+            <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden">
+              <img v-if="rec.mainImage" :src="rec.mainImage" :alt="rec.name" class="w-full h-full object-cover" @error="onImgError" />
+              <span v-else class="text-gray-300 text-xs">商品图片</span>
             </div>
             <div class="p-3">
-              <p class="text-xs text-gray-600 truncate group-hover:text-orange-500 transition">精选推荐家具商品 {{ i }}</p>
-              <p class="text-orange-500 font-bold text-sm mt-1">¥{{ (i + 1) * 1200 }}</p>
+              <p class="text-xs text-gray-600 truncate group-hover:text-orange-500 transition">{{ rec.name }}</p>
+              <p class="text-orange-500 font-bold text-sm mt-1">¥{{ rec.skus?.[0]?.price || '--' }}</p>
             </div>
           </NuxtLink>
         </div>
@@ -146,6 +147,7 @@ interface CartItem {
 
 const cartItems = reactive<CartItem[]>([])
 const loading = ref(false)
+const recommendProducts = ref<any[]>([])
 function onImgError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
 
 // 加载购物车
@@ -177,6 +179,10 @@ async function loadCart() {
 
 if (import.meta.client) {
   loadCart()
+  // 加载推荐商品
+  get('/v1/products', { page: 1, pageSize: 5, sort: 'sales' }).then((res: any) => {
+    if (res?.data?.list) recommendProducts.value = res.data.list
+  }).catch(() => {})
 }
 
 const selectAll = computed({

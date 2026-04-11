@@ -3,8 +3,9 @@
     :to="`/product/${product.id}`"
     class="bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-lg transition-all group"
   >
-    <div :class="['bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative', imageClass || 'aspect-square']">
-      <span class="text-gray-300 text-sm">商品图片</span>
+    <div :class="['bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden', imageClass || 'aspect-square']">
+      <img v-if="product.image" :src="product.image" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
+      <span v-else class="text-gray-300 text-sm">商品图片</span>
       <div v-if="product.tag" class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded">{{ product.tag }}</div>
     </div>
     <div class="p-3">
@@ -27,6 +28,7 @@
 export interface ProductCardItem {
   id: string
   name: string
+  image?: string
   brand?: string
   price: number | string
   originalPrice?: number | string
@@ -40,4 +42,6 @@ defineProps<{
   showMeta?: boolean
   imageClass?: string
 }>()
+
+function onImgError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
 </script>

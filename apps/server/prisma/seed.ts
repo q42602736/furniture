@@ -3,9 +3,24 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
-// picsum.photos 固定种子图片 — 相同 seed 始终返回同一张图
-const img = (seed: string, w: number, h: number) =>
-  `https://picsum.photos/seed/${seed}/${w}/${h}`
+// Unsplash 免费家居图片 — 按 photo ID 返回真实家居主题图片，永不过期
+const unsplash = (photoId: string, w: number, h: number) =>
+  `https://images.unsplash.com/photo-${photoId}?w=${w}&h=${h}&fit=crop&auto=format`
+
+// 精选家居主题 Unsplash 图片池（均已验证可用）
+const furniturePhotos = [
+  '1540574163026-643ea20ade25', '1550581190-9c1c48d21d6c', '1556909114-f6e7ad7d3136',
+  '1583847268964-b28dc8f51f92', '1592078615290-033ee584e267', '1631049307264-da0ec9d70304',
+  '1505693416388-ac5ce068fe85', '1560448204-e02f11c3d0e2', '1519710164239-da123dc03ef4',
+  '1558997519-83ea9252edf8', '1617806118233-18e1de247200', '1556228578-8c89e6adf883',
+  '1506439773649-6e0eb8cfb237', '1567538096630-e0c55bd6374c', '1595526114035-0d45ed16cfbf',
+  '1566665797739-1674de7a421a', '1580587771525-78b9dba3b914', '1513694203232-719a280e022f',
+  '1543248939-4296e1fea89b', '1616594039964-ae9021a400a0', '1618221195710-dd6b41faaea6',
+  '1524758631624-e2822e304c36', '1493663284031-b7e3aefcae8e', '1484154218962-a197022b5858',
+  '1721395285142-6294e68b6fbf', '1723257132161-7e1072eef2f8',
+]
+const pick = (idx: number) => furniturePhotos[idx % furniturePhotos.length]
+let photoIdx = 0
 
 // 订单号生成器
 let orderSeq = 0
@@ -57,14 +72,14 @@ async function main() {
   // ==================== 品牌数据（含 Logo） ====================
   console.log('🏷️ 创建品牌...')
   const brandData = [
-    { name: 'MUJI 无印良品', logo: img('brand-muji', 200, 200) },
-    { name: 'HAY', logo: img('brand-hay', 200, 200) },
-    { name: 'Fendi Casa', logo: img('brand-fendi', 200, 200) },
-    { name: 'Poliform', logo: img('brand-poliform', 200, 200) },
-    { name: '梵几', logo: img('brand-fanj', 200, 200) },
-    { name: '半木', logo: img('brand-banmu', 200, 200) },
-    { name: 'Ethan Allen', logo: img('brand-ethan', 200, 200) },
-    { name: 'Ashley', logo: img('brand-ashley', 200, 200) },
+    { name: 'MUJI 无印良品', logo: unsplash('1616594039964-ae9021a400a0', 200, 200) },
+    { name: 'HAY', logo: unsplash('1524758631624-e2822e304c36', 200, 200) },
+    { name: 'Fendi Casa', logo: unsplash('1618221195710-dd6b41faaea6', 200, 200) },
+    { name: 'Poliform', logo: unsplash('1493663284031-b7e3aefcae8e', 200, 200) },
+    { name: '梵几', logo: unsplash('1556228578-8c89e6adf883', 200, 200) },
+    { name: '半木', logo: unsplash('1580587771525-78b9dba3b914', 200, 200) },
+    { name: 'Ethan Allen', logo: unsplash('1484154218962-a197022b5858', 200, 200) },
+    { name: 'Ashley', logo: unsplash('1721395285142-6294e68b6fbf', 200, 200) },
   ]
 
   const brandRecords = []
@@ -78,31 +93,56 @@ async function main() {
   const allCategories = await prisma.category.findMany({ where: { parentId: { not: null } } })
 
   const productData = [
-    { name: '北欧实木沙发 三人位', brandIdx: 0, catSlug: 'living-room-1', price: 5999, desc: '精选北美白橡木，简约线条设计', seed: 'sofa-nordic' },
-    { name: '丹麦设计师茶几 圆形', brandIdx: 1, catSlug: 'living-room-2', price: 2899, desc: 'HAY 经典设计，实木桌面搭配金属支脚', seed: 'table-danish' },
-    { name: '意式真皮沙发 L型', brandIdx: 2, catSlug: 'living-room-1', price: 28999, desc: '进口头层牛皮，意大利顶级工艺', seed: 'sofa-italian' },
-    { name: '极简电视柜 悬浮式', brandIdx: 3, catSlug: 'living-room-3', price: 6599, desc: 'Poliform 极简设计，悬浮安装', seed: 'tvstand-minimal' },
-    { name: '新中式实木大床 1.8米', brandIdx: 4, catSlug: 'bedroom-1', price: 8999, desc: '黑胡桃木框架，传统榫卯工艺', seed: 'bed-chinese' },
-    { name: '新中式梳妆台', brandIdx: 5, catSlug: 'bedroom-5', price: 4599, desc: '国粹美学，实木雕花镜框', seed: 'dresser-chinese' },
-    { name: '美式乡村餐桌 六人位', brandIdx: 6, catSlug: 'dining-room-1', price: 7999, desc: '橡胶木实木，做旧复古工艺', seed: 'table-american' },
-    { name: '美式餐边柜 实木', brandIdx: 7, catSlug: 'dining-room-3', price: 5299, desc: 'Ashley 经典设计，大容量收纳', seed: 'cabinet-american' },
-    { name: '北欧简约书桌 140cm', brandIdx: 0, catSlug: 'study-1', price: 3299, desc: '白橡木桌面，极简铁艺桌腿', seed: 'desk-nordic' },
-    { name: '人体工学书椅', brandIdx: 1, catSlug: 'study-2', price: 2499, desc: '4D 扶手，腰部支撑可调', seed: 'chair-ergonomic' },
-    { name: '意式极简衣柜 四门', brandIdx: 3, catSlug: 'bedroom-3', price: 12999, desc: '静音滑轨，LED 感应灯带', seed: 'wardrobe-italian' },
-    { name: '实木儿童床 上下铺', brandIdx: 4, catSlug: 'children-1', price: 6599, desc: '新西兰松木，环保水性漆', seed: 'bed-children' },
-    { name: '北欧吊灯 餐厅款', brandIdx: 1, catSlug: 'lighting-1', price: 1599, desc: 'HAY 设计师款，黄铜灯臂', seed: 'lamp-nordic' },
-    { name: '手工编织地毯 200x300', brandIdx: 5, catSlug: 'decor-4', price: 3999, desc: '印度手工编织，纯羊毛材质', seed: 'carpet-handmade' },
-    { name: '美式实木鞋柜', brandIdx: 7, catSlug: 'storage-1', price: 3899, desc: '翻斗设计，超大容量30双', seed: 'shoecabinet-american' },
-    { name: '轻奢真皮床 1.5米', brandIdx: 2, catSlug: 'bedroom-1', price: 15999, desc: 'Fendi 同厂代工，科技布床头', seed: 'bed-luxury' },
+    { name: '北欧实木沙发 三人位', brandIdx: 0, catSlug: 'living-room-1', price: 5999, desc: '精选北美白橡木，简约线条设计', imgId: 10 },
+    { name: '丹麦设计师茶几 圆形', brandIdx: 1, catSlug: 'living-room-2', price: 2899, desc: 'HAY 经典设计，实木桌面搭配金属支脚', imgId: 20 },
+    { name: '意式真皮沙发 L型', brandIdx: 2, catSlug: 'living-room-1', price: 28999, desc: '进口头层牛皮，意大利顶级工艺', imgId: 30 },
+    { name: '极简电视柜 悬浮式', brandIdx: 3, catSlug: 'living-room-3', price: 6599, desc: 'Poliform 极简设计，悬浮安装', imgId: 40 },
+    { name: '新中式实木大床 1.8米', brandIdx: 4, catSlug: 'bedroom-1', price: 8999, desc: '黑胡桃木框架，传统榫卯工艺', imgId: 50 },
+    { name: '新中式梳妆台', brandIdx: 5, catSlug: 'bedroom-5', price: 4599, desc: '国粹美学，实木雕花镜框', imgId: 60 },
+    { name: '美式乡村餐桌 六人位', brandIdx: 6, catSlug: 'dining-room-1', price: 7999, desc: '橡胶木实木，做旧复古工艺', imgId: 70 },
+    { name: '美式餐边柜 实木', brandIdx: 7, catSlug: 'dining-room-3', price: 5299, desc: 'Ashley 经典设计，大容量收纳', imgId: 80 },
+    { name: '北欧简约书桌 140cm', brandIdx: 0, catSlug: 'study-1', price: 3299, desc: '白橡木桌面，极简铁艺桌腿', imgId: 90 },
+    { name: '人体工学书椅', brandIdx: 1, catSlug: 'study-2', price: 2499, desc: '4D 扶手，腰部支撑可调', imgId: 100 },
+    { name: '意式极简衣柜 四门', brandIdx: 3, catSlug: 'bedroom-3', price: 12999, desc: '静音滑轨，LED 感应灯带', imgId: 110 },
+    { name: '实木儿童床 上下铺', brandIdx: 4, catSlug: 'children-1', price: 6599, desc: '新西兰松木，环保水性漆', imgId: 120 },
+    { name: '北欧吊灯 餐厅款', brandIdx: 1, catSlug: 'lighting-1', price: 1599, desc: 'HAY 设计师款，黄铜灯臂', imgId: 130 },
+    { name: '手工编织地毯 200x300', brandIdx: 5, catSlug: 'decor-4', price: 3999, desc: '印度手工编织，纯羊毛材质', imgId: 140 },
+    { name: '美式实木鞋柜', brandIdx: 7, catSlug: 'storage-1', price: 3899, desc: '翻斗设计，超大容量30双', imgId: 150 },
+    { name: '轻奢真皮床 1.5米', brandIdx: 2, catSlug: 'bedroom-1', price: 15999, desc: 'Fendi 同厂代工，科技布床头', imgId: 160 },
+    // ---- 补充客厅家具（凑满 8 个） ----
+    { name: '奶油风布艺沙发 双人位', brandIdx: 0, catSlug: 'living-room-1', price: 4299, desc: '高密度海绵填充，可拆洗棉麻面料', imgId: 170 },
+    { name: '轻奢岩板茶几 长方形', brandIdx: 3, catSlug: 'living-room-2', price: 3599, desc: '天然岩板台面，不锈钢镀钛金支架', imgId: 180 },
+    { name: '实木展示柜 格栅款', brandIdx: 4, catSlug: 'living-room-5', price: 5299, desc: '白橡木框架，玻璃柜门展示收纳', imgId: 190 },
+    { name: '轻奢单人休闲椅', brandIdx: 6, catSlug: 'living-room-4', price: 3899, desc: '头层牛皮面料，实木框架稳固舒适', imgId: 210 },
+    // ---- 补充卧室家具（凑满 8 个） ----
+    { name: '乳胶弹簧床垫 1.8米', brandIdx: 7, catSlug: 'bedroom-2', price: 3999, desc: '泰国进口乳胶，独立袋装弹簧静音', imgId: 220 },
+    { name: '北欧实木床头柜', brandIdx: 0, catSlug: 'bedroom-4', price: 1299, desc: '圆润倒角设计，双抽大容量收纳', imgId: 230 },
+    { name: '现代简约衣柜 推拉门', brandIdx: 1, catSlug: 'bedroom-3', price: 9999, desc: '定制尺寸，内部分区合理', imgId: 240 },
+    { name: '日式梳妆台 翻盖式', brandIdx: 5, catSlug: 'bedroom-5', price: 3299, desc: '翻盖镜面，多格分类收纳', imgId: 250 },
+    // ---- 补充餐厅家具（凑满 8 个） ----
+    { name: '岩板餐桌 1.6米 六人位', brandIdx: 2, catSlug: 'dining-room-1', price: 6999, desc: '意大利进口岩板，耐高温防刮花', imgId: 260 },
+    { name: '意式餐椅 软包款 2把', brandIdx: 3, catSlug: 'dining-room-2', price: 2599, desc: '科技布面料，一体成型椅背', imgId: 270 },
+    { name: '北欧实木餐边柜 推拉门', brandIdx: 0, catSlug: 'dining-room-3', price: 4599, desc: '白橡木质地，隐藏式把手', imgId: 280 },
+    { name: '轻奢酒柜 恒温款', brandIdx: 6, catSlug: 'dining-room-4', price: 7899, desc: '恒温设计，可存放36瓶红酒', imgId: 290 },
+    { name: '圆形大理石餐桌 1.3米', brandIdx: 2, catSlug: 'dining-room-1', price: 8599, desc: '天然大理石桌面，不锈钢底座', imgId: 310 },
+    { name: '北欧餐椅 实木 4把装', brandIdx: 1, catSlug: 'dining-room-2', price: 3299, desc: '北美白蜡木，人体工学曲线靠背', imgId: 320 },
+    // ---- 补充书房家具（凑满 8 个） ----
+    { name: '实木书柜 五层 开放式', brandIdx: 4, catSlug: 'study-3', price: 4899, desc: '黑胡桃木框架，开放式设计', imgId: 330 },
+    { name: '简约文件柜 三抽', brandIdx: 7, catSlug: 'study-4', price: 1899, desc: '钢制柜体，A4文件分类存放', imgId: 340 },
+    { name: '电动升降书桌 140cm', brandIdx: 1, catSlug: 'study-1', price: 4699, desc: '双电机驱动，四挡记忆高度', imgId: 350 },
+    { name: '网布办公椅 全功能', brandIdx: 3, catSlug: 'study-2', price: 3599, desc: '全网透气设计，多维调节扶手', imgId: 360 },
+    { name: '日式实木书桌 120cm', brandIdx: 5, catSlug: 'study-1', price: 2899, desc: '樱桃木桌面，隐藏式走线孔', imgId: 370 },
+    { name: '转椅 头枕升级款', brandIdx: 0, catSlug: 'study-2', price: 2199, desc: '可调头枕，W型分区腰托', imgId: 380 },
   ]
 
   const productRecords: any[] = []
 
-  for (const p of productData) {
+  for (let pIdx = 0; pIdx < productData.length; pIdx++) {
+    const p = productData[pIdx]
     const cat = allCategories.find((c) => c.slug === p.catSlug)
     if (!cat) continue
 
-    const mainImage = img(p.seed, 800, 800)
+    const mainImage = unsplash(pick(photoIdx++), 800, 800)
 
     const product = await prisma.product.create({
       data: {
@@ -123,7 +163,7 @@ async function main() {
       await prisma.productImage.create({
         data: {
           productId: product.id,
-          url: img(`${p.seed}-gallery-${i + 1}`, 800, 800),
+          url: unsplash(pick(photoIdx++), 800, 800),
           sort: i,
         },
       })
@@ -133,8 +173,8 @@ async function main() {
     const basePrice = p.price
     await prisma.productSku.createMany({
       data: [
-        { productId: product.id, name: '标准款', price: basePrice, stock: Math.floor(Math.random() * 100) + 20, image: img(`${p.seed}-sku-std`, 400, 400) },
-        { productId: product.id, name: '升级款', price: Math.round(basePrice * 1.2), stock: Math.floor(Math.random() * 50) + 10, image: img(`${p.seed}-sku-pro`, 400, 400) },
+        { productId: product.id, name: '标准款', price: basePrice, stock: Math.floor(Math.random() * 100) + 20, image: unsplash(pick(photoIdx++), 400, 400) },
+        { productId: product.id, name: '升级款', price: Math.round(basePrice * 1.2), stock: Math.floor(Math.random() * 50) + 10, image: unsplash(pick(photoIdx++), 400, 400) },
       ],
     })
   }
@@ -143,10 +183,10 @@ async function main() {
   console.log('🖼️ 创建 Banner...')
   await prisma.banner.createMany({
     data: [
-      { title: '2024 新品上市', image: img('banner-newproduct', 1200, 400), link: '/category/living-room', sort: 1 },
-      { title: '年中大促 全场5折起', image: img('banner-sale', 1200, 400), link: '/search?keyword=promotion', sort: 2 },
-      { title: '设计师精选系列', image: img('banner-designer', 1200, 400), link: '/brand', sort: 3 },
-      { title: '免费配送到家', image: img('banner-delivery', 1200, 400), link: '/category/bedroom', sort: 4 },
+      { title: '2024 新品上市 实木家居全新升级', image: unsplash('1616594039964-ae9021a400a0', 1200, 400), link: '/category/living-room', sort: 1 },
+      { title: '年中大係 全场5折起', image: unsplash('1524758631624-e2822e304c36', 1200, 400), link: '/search?keyword=promotion', sort: 2 },
+      { title: '设计师精选系列', image: unsplash('1618221195710-dd6b41faaea6', 1200, 400), link: '/brand', sort: 3 },
+      { title: '卓越卧居空间 免费配送到家', image: unsplash('1505693416388-ac5ce068fe85', 1200, 400), link: '/category/bedroom', sort: 4 },
     ],
   })
 
@@ -155,9 +195,9 @@ async function main() {
   const userPassword = await bcrypt.hash('123456', 10)
 
   const userList = [
-    { phone: '13800000001', nickname: '张小花', avatar: img('avatar-user1', 200, 200) },
-    { phone: '13800000002', nickname: '李明远', avatar: img('avatar-user2', 200, 200) },
-    { phone: '13800000003', nickname: '王家居', avatar: img('avatar-user3', 200, 200) },
+    { phone: '13800000001', nickname: '张小花', avatar: 'https://i.pravatar.cc/200?img=1' },
+    { phone: '13800000002', nickname: '李明远', avatar: 'https://i.pravatar.cc/200?img=3' },
+    { phone: '13800000003', nickname: '王家居', avatar: 'https://i.pravatar.cc/200?img=5' },
   ]
 
   const testUsers: any[] = []
@@ -292,8 +332,8 @@ async function main() {
     let images: string | null = null
     if (r.hasImg) {
       images = JSON.stringify([
-        img(`review-${i + 1}-a`, 400, 400),
-        img(`review-${i + 1}-b`, 400, 400),
+        unsplash(pick(i * 2), 400, 400),
+        unsplash(pick(i * 2 + 1), 400, 400),
       ])
     }
 
@@ -344,7 +384,7 @@ async function main() {
   console.log('')
   console.log('📊 数据统计：')
   console.log(`  - 品牌: ${brandRecords.length} 个`)
-  console.log(`  - 商品: ${productRecords.length} 个（含图册 + 双 SKU）`)
+  console.log(`  - 商品: ${productRecords.length} 个（含图册 + 双 SKU，各楼层 ≥8 个）`)
   console.log(`  - Banner: 4 张`)
   console.log(`  - 订单: ${orderRecords.length} 个（6 种状态）`)
   console.log(`  - 评价: ${reviewData.length} 条`)

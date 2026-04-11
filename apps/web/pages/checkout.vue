@@ -68,8 +68,9 @@
             :key="item.id"
             class="flex items-center gap-4 pb-3 border-b border-gray-50 last:border-0"
           >
-            <div class="w-[70px] h-[70px] bg-gradient-to-br from-gray-50 to-gray-100 rounded flex items-center justify-center shrink-0">
-              <span class="text-gray-300 text-[10px]">图片</span>
+            <div class="w-[70px] h-[70px] bg-gradient-to-br from-gray-50 to-gray-100 rounded flex items-center justify-center shrink-0 overflow-hidden">
+              <img v-if="item.image" :src="item.image" :alt="item.name" class="w-full h-full object-cover" @error="onImgError" />
+              <span v-else class="text-gray-300 text-[10px]">图片</span>
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm text-gray-700 truncate">{{ item.name }}</p>
@@ -105,12 +106,11 @@
       <!-- 费用汇总 & 提交 -->
       <div class="bg-white rounded-lg p-6">
         <div class="text-right space-y-2 text-sm">
-          <div class="text-gray-500">商品总额：<span class="text-gray-700">¥11,560</span></div>
+          <div class="text-gray-500">商品总额：<span class="text-gray-700">¥{{ totalAmount.toLocaleString() }}</span></div>
           <div class="text-gray-500">运费：<span class="text-green-500">免运费</span></div>
-          <div class="text-gray-500">优惠：<span class="text-red-500">-¥200</span></div>
           <div class="pt-3 border-t border-gray-100 mt-3">
             <span class="text-gray-500">应付总额：</span>
-            <span class="text-orange-500 text-2xl font-bold">¥11,360</span>
+            <span class="text-orange-500 text-2xl font-bold">¥{{ totalAmount.toLocaleString() }}</span>
           </div>
         </div>
         <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
@@ -127,18 +127,52 @@
 </template>
 
 <script setup lang="ts">
-const selectedAddress = ref(1)
+const { get } = useApi()
+const userStore = useUserStore()
+const selectedAddress = ref<number | null>(null)
 const remark = ref('')
+function onImgError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
 
-const addresses = [
-  { id: 1, name: '张三', phone: '138****8888', address: '广东省 深圳市 南山区 科技园 XX大厦 1栋 1001', isDefault: true },
-  { id: 2, name: '张三', phone: '138****8888', address: '广东省 广州市 天河区 珠江新城 XX广场 2栋 2001', isDefault: false },
-]
+interface CheckoutItem {
+  id: number
+  name: string
+  sku: string
+  count: number
+  price: number
+  image: string
+}
 
-const orderItems = [
-  { id: 1, name: '意式极简真皮沙发 大户型客厅直排三人位', sku: '胡桃色 / 2.0m', count: 1, price: '6,980' },
-  { id: 2, name: '北欧实木床 双人床主卧大床', sku: '原木色 / 1.8m', count: 1, price: '4,580' },
-]
+const addresses = ref<any[]>([])
+const orderItems = ref<CheckoutItem[]>([])
+
+const totalAmount = computed(() =>
+  orderItems.value.reduce((sum, item) => sum + item.price * item.count, 0)
+)
+
+if (import.meta.client && userStore.isLoggedIn) {
+  // 加载购物车数据作为结算商品
+  get('/v1/cart').then((res: any) => {
+    if (res?.data) {
+      orderItems.value = res.data.map((item: any) => ({
+        id: item.id,
+        name: item.product?.name || '商品',
+        sku: item.sku?.name || '',
+        count: item.quantity,
+        price: Number(item.sku?.price || 0),
+        image: item.sku?.image || item.product?.mainImage || '',
+      }))
+    }
+  }).catch(() => {})
+
+  // 加载收货地址
+  get('/v1/addresses').then((res: any) => {
+    const list = res?.data?.list || res?.data || []
+    addresses.value = list
+    const defaultAddr = list.find((a: any) => a.isDefault)
+    if (defaultAddr) selectedAddress.value = defaultAddr.id
+    else if (list.length) selectedAddress.value = list[0].id
+  }).catch(() => {})
+}
 
 useHead({ title: '确认订单 - 美家优选' })
 </script>

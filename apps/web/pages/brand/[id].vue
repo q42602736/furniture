@@ -11,8 +11,9 @@
           <span class="text-gray-700">{{ brandInfo?.name || '品牌详情' }}</span>
         </nav>
         <div v-if="brandInfo" class="flex items-center gap-6">
-          <div class="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold shrink-0">
-            {{ brandInfo.name.charAt(0) }}
+          <div class="w-20 h-20 bg-white border border-gray-100 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
+            <img v-if="brandInfo.logo" :src="brandInfo.logo" :alt="brandInfo.name" class="w-full h-full object-contain p-2" @error="onLogoError" />
+            <span v-else class="text-orange-500 text-2xl font-bold">{{ brandInfo.name.charAt(0) }}</span>
           </div>
           <div class="flex-1">
             <h1 class="text-xl font-bold text-gray-800">{{ brandInfo.name }}</h1>
@@ -105,12 +106,15 @@ function mapProduct(p: any): ProductCardItem {
   return {
     id: String(p.id),
     name: p.name,
+    image: p.mainImage || undefined,
     brand: p.brand?.name,
     price: minPrice,
     sales: p.salesCount,
     comments: p._count?.reviews,
   }
 }
+
+function onLogoError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
 
 async function fetchProducts(reset = false) {
   if (reset) {
@@ -119,17 +123,17 @@ async function fetchProducts(reset = false) {
   }
   loading.value = true
   try {
-    const res = await get('/api/v1/products', {
+    const res = await get('/v1/products', {
       brandId: brandId.value,
       page: page.value,
       pageSize,
       sort: activeSort.value,
     })
-    const list: any[] = res.data ?? res.list ?? []
+    const list: any[] = res?.data?.list ?? []
     if (list.length && !brandInfo.value) {
       brandInfo.value = list[0].brand
     }
-    total.value = res.total ?? 0
+    total.value = res?.data?.total ?? 0
     const mapped = list.map(mapProduct)
     if (reset) {
       products.value = mapped
@@ -150,6 +154,11 @@ function loadMore() {
   page.value++
   fetchProducts()
 }
+
+// 加载品牌信息
+get(`/v1/brands/${brandId.value}`).then((res: any) => {
+  if (res?.data) brandInfo.value = res.data
+}).catch(() => {})
 
 await fetchProducts(true)
 

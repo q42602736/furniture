@@ -30,21 +30,31 @@
         </span>
       </div>
 
+      <!-- 加载中 -->
+      <div v-if="loading" class="py-20 text-center text-gray-400">加载中...</div>
+
       <!-- 品牌列表 -->
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div v-else class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         <NuxtLink
           v-for="brand in filteredBrands"
           :key="brand.id"
           :to="`/brand/${brand.id}`"
           class="bg-white rounded-lg border border-gray-100 overflow-hidden hover:shadow-lg transition-all group"
         >
-          <div class="h-[120px] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-            <span class="text-gray-400 text-lg font-medium group-hover:text-orange-500 transition">{{ brand.name }}</span>
+          <div class="h-[120px] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden">
+            <img
+              v-if="brand.logo"
+              :src="brand.logo"
+              :alt="brand.name"
+              class="w-full h-full object-contain p-4"
+              @error="onLogoError"
+            />
+            <span v-else class="text-gray-400 text-lg font-medium group-hover:text-orange-500 transition">{{ brand.name }}</span>
           </div>
           <div class="p-3 border-t border-gray-50">
-            <p class="text-xs text-gray-500 truncate">{{ brand.desc }}</p>
+            <p class="text-sm font-medium text-gray-700 truncate">{{ brand.name }}</p>
             <div class="flex items-center justify-between mt-2 text-xs">
-              <span class="text-gray-400">{{ brand.productCount }} 件商品</span>
+              <span class="text-gray-400">{{ brand.productCount ? brand.productCount + ' 件商品' : '品牌旗舰' }}</span>
               <span class="text-orange-500">进入品牌 →</span>
             </div>
           </div>
@@ -55,31 +65,41 @@
 </template>
 
 <script setup lang="ts">
+const { get } = useApi()
 const activeLetter = ref('')
+const loading = ref(false)
 
 const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'W', 'X', 'Y', 'Z']
 
-const brands = [
-  { id: '1', name: '欧瑞仕', letter: 'O', desc: '意大利设计师品牌，专注意式极简风格', productCount: 286 },
-  { id: '2', name: '卡琪朵', letter: 'K', desc: '法式轻奢家居品牌，浪漫优雅', productCount: 198 },
-  { id: '3', name: '慕梵希', letter: 'M', desc: '现代简约风格引领者，品质典范', productCount: 245 },
-  { id: '4', name: '罗曼仕', letter: 'L', desc: '英伦古典风格，百年匠心传承', productCount: 167 },
-  { id: '5', name: 'Milantti 米兰蒂', letter: 'M', desc: '意大利米兰设计，轻奢美学', productCount: 312 },
-  { id: '6', name: '檀雅居', letter: 'T', desc: '新中式实木家居，东方美学', productCount: 156 },
-  { id: '7', name: '诺美帝斯', letter: 'N', desc: '北欧简约设计，自然舒适', productCount: 203 },
-  { id: '8', name: '歌迪', letter: 'G', desc: '德式工艺精品，严谨品质', productCount: 178 },
-  { id: '9', name: '芝华仕', letter: 'Z', desc: '功能沙发领导品牌，头等舱级体验', productCount: 421 },
-  { id: '10', name: '顾家家居', letter: 'G', desc: '全屋定制解决方案，一站式家装', productCount: 567 },
-  { id: '11', name: '曲美家居', letter: 'Q', desc: '国民品质家居，时尚实用', productCount: 389 },
-  { id: '12', name: '百强家具', letter: 'B', desc: '欧洲品质实木家具，环保健康', productCount: 234 },
-  { id: '13', name: '斯可馨', letter: 'S', desc: '布艺沙发专家，舒适生活', productCount: 145 },
-  { id: '14', name: '华日家居', letter: 'H', desc: '实木家具标杆，匠心品质', productCount: 298 },
-  { id: '15', name: '全友家居', letter: 'Q', desc: '绿色全屋家居，健康环保', productCount: 612 },
-]
+interface BrandItem {
+  id: string
+  name: string
+  logo: string | null
+  letter: string
+  productCount: number
+}
+
+const brands = ref<BrandItem[]>([])
+
+function onLogoError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
+
+if (import.meta.client) {
+  loading.value = true
+  get('/v1/brands').then((res: any) => {
+    const list = res?.data?.list || res?.data || []
+    brands.value = list.map((b: any) => ({
+      id: String(b.id),
+      name: b.name,
+      logo: b.logo || null,
+      letter: b.name.replace(/[^a-zA-Z]/, '').charAt(0).toUpperCase() || '#',
+      productCount: b._count?.products || 0,
+    }))
+  }).catch(() => {}).finally(() => { loading.value = false })
+}
 
 const filteredBrands = computed(() => {
-  if (!activeLetter.value) return brands
-  return brands.filter(b => b.letter === activeLetter.value)
+  if (!activeLetter.value) return brands.value
+  return brands.value.filter(b => b.letter === activeLetter.value)
 })
 
 useHead({ title: '品牌馆 - 美家优选' })

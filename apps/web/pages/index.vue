@@ -372,7 +372,7 @@ const services = [
 let timer: ReturnType<typeof setInterval> | null = null
 onMounted(() => {
   timer = setInterval(() => {
-    currentBanner.value = (currentBanner.value + 1) % banners.length
+    currentBanner.value = (currentBanner.value + 1) % (banners.value.length || 1)
   }, 4000)
 })
 onUnmounted(() => {
