@@ -54,7 +54,7 @@
               <div class="row g-4 mb-5">
                 <div class="col-md-3 col-sm-4 col-6" v-for="(img, i) in form.images" :key="i">
                   <div class="position-relative border border-dashed border-gray-300 rounded overflow-hidden" style="aspect-ratio:1">
-                    <img :src="img.url" class="w-100 h-100" style="object-fit:cover" />
+                    <img :src="img.url" class="w-100 h-100" style="object-fit:cover" @error="onImgError" />
                     <button
                       class="btn btn-icon btn-sm btn-color-danger btn-active-light-danger position-absolute top-0 end-0 m-2"
                       @click="form.images.splice(i, 1)"
@@ -163,6 +163,8 @@ const form = reactive({
 const newImageUrl = ref('')
 
 const categories = ref<any[]>([])
+
+function onImgError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
 
 function addImage() {
   const url = newImageUrl.value.trim()

@@ -18,7 +18,7 @@
         <div class="w-[450px] shrink-0">
           <!-- 主图 -->
           <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg flex items-center justify-center border border-gray-100 overflow-hidden mb-3">
-            <img v-if="mainImage" :src="mainImage" :alt="product?.name" class="w-full h-full object-cover" />
+            <img v-if="mainImage" :src="mainImage" :alt="product?.name" class="w-full h-full object-cover" @error="onImgError" />
             <span v-else class="text-gray-300 text-lg">主商品图片</span>
           </div>
           <!-- 缩略图列表 -->
@@ -32,7 +32,7 @@
               ]"
               @click="activeThumb = idx"
             >
-              <img :src="img" class="w-full h-full object-cover" />
+              <img :src="img" class="w-full h-full object-cover" @error="onImgError" />
             </div>
           </div>
         </div>
@@ -216,7 +216,7 @@
           <div class="bg-white rounded-lg p-4" v-if="product?.brand">
             <div class="flex items-center gap-3 mb-3">
               <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold overflow-hidden">
-                <img v-if="product.brand.logo" :src="product.brand.logo" class="w-full h-full object-cover" />
+                <img v-if="product.brand.logo" :src="product.brand.logo" class="w-full h-full object-cover" @error="onImgError" />
                 <span v-else>{{ (product.brand.name || '品')[0] }}</span>
               </div>
               <div>
@@ -239,7 +239,7 @@
                 class="flex gap-3 group"
               >
                 <div class="w-[70px] h-[70px] bg-gradient-to-br from-gray-50 to-gray-100 rounded flex items-center justify-center shrink-0 overflow-hidden">
-                  <img v-if="rec.skus?.[0]?.price" :src="rec.mainImage || ''" class="w-full h-full object-cover" />
+                  <img v-if="rec.mainImage" :src="rec.mainImage" class="w-full h-full object-cover" @error="onImgError" />
                   <span v-else class="text-gray-300 text-[10px]">图片</span>
                 </div>
                 <div class="flex-1 min-w-0">
@@ -260,6 +260,7 @@ const route = useRoute()
 const { get, post } = useApi()
 const userStore = useUserStore()
 const productId = computed(() => Number(route.params.id))
+function onImgError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
 
 const activeThumb = ref(0)
 const selectedSkuId = ref<number | null>(null)

@@ -63,7 +63,7 @@
               :key="item.id"
               class="w-16 h-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded flex items-center justify-center shrink-0 overflow-hidden"
             >
-              <img v-if="item.image" :src="item.image" class="w-full h-full object-cover" />
+              <img v-if="item.image" :src="item.image" class="w-full h-full object-cover" @error="onImgError" />
               <span v-else class="text-gray-300 text-[10px]">图片</span>
             </div>
             <div class="flex-1 min-w-0">
@@ -86,6 +86,7 @@ definePageMeta({ layout: 'user' })
 
 const { get } = useApi()
 const userStore = useUserStore()
+function onImgError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
 
 const quickEntries = [
   { icon: '📦', label: '全部订单', to: '/user/orders' },

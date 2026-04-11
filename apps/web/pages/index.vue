@@ -31,7 +31,7 @@
                 ]"
               >
                 <div class="flex items-center justify-center h-full text-white" :style="{ background: banner.image ? 'none' : gradients[idx % gradients.length] }">
-                  <img v-if="banner.image" :src="banner.image" :alt="banner.title" class="w-full h-full object-cover" />
+                  <img v-if="banner.image" :src="banner.image" :alt="banner.title" class="w-full h-full object-cover" @error="onImgError" />
                   <div v-else class="text-center">
                     <h2 class="text-3xl font-bold mb-2">{{ banner.title }}</h2>
                   </div>
@@ -109,7 +109,7 @@
           class="group bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-lg transition-all cursor-pointer"
         >
           <div class="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
-            <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" />
+            <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
             <span v-else class="text-gray-400 text-sm">商品图片</span>
             <div class="absolute top-2 left-2 bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded">在售</div>
           </div>
@@ -197,7 +197,7 @@
             class="bg-white border border-gray-100 rounded-lg overflow-hidden hover:shadow-md transition cursor-pointer group"
           >
             <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-              <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" />
+              <img v-if="product.skus?.[0]?.image" :src="product.skus[0].image" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
               <span v-else class="text-gray-300 text-xs">{{ floor.name }}商品图片</span>
             </div>
             <div class="p-2.5">
@@ -245,6 +245,7 @@
 const { get } = useApi()
 const currentBanner = ref(0)
 const activeStyle = ref('意式美学')
+function onImgError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
 
 const gradients = [
   'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',

@@ -37,7 +37,7 @@
           <!-- 商品列表 -->
           <div v-for="item in order.items" :key="item.id" class="px-5 py-4 flex items-center border-b border-gray-50 last:border-0">
             <div class="w-[80px] h-[80px] bg-gradient-to-br from-gray-50 to-gray-100 rounded flex items-center justify-center shrink-0 mr-4 overflow-hidden">
-              <img v-if="item.image" :src="item.image" class="w-full h-full object-cover" />
+              <img v-if="item.image" :src="item.image" class="w-full h-full object-cover" @error="onImgError" />
               <span v-else class="text-gray-300 text-[10px]">图片</span>
             </div>
             <div class="flex-1 min-w-0">
@@ -82,6 +82,7 @@
 definePageMeta({ layout: 'user' })
 
 const { get } = useApi()
+function onImgError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
 
 const activeTab = ref('all')
 const orders = ref<any[]>([])

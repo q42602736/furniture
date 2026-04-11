@@ -38,7 +38,7 @@
             </label>
             <div class="flex-1 flex items-center gap-4 min-w-0">
               <NuxtLink :to="`/product/${item.productId}`" class="w-[80px] h-[80px] bg-gradient-to-br from-gray-50 to-gray-100 rounded flex items-center justify-center shrink-0 overflow-hidden">
-                <img v-if="item.image" :src="item.image" :alt="item.name" class="w-full h-full object-cover" />
+                <img v-if="item.image" :src="item.image" :alt="item.name" class="w-full h-full object-cover" @error="onImgError" />
                 <span v-else class="text-gray-300 text-[10px]">图片</span>
               </NuxtLink>
               <div class="min-w-0 flex-1">
@@ -146,6 +146,7 @@ interface CartItem {
 
 const cartItems = reactive<CartItem[]>([])
 const loading = ref(false)
+function onImgError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
 
 // 加载购物车
 async function loadCart() {

@@ -11,7 +11,7 @@
           class="bg-white border border-gray-100 rounded-lg overflow-hidden hover:shadow-md transition group"
         >
           <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden">
-            <img v-if="fav.product?.mainImage" :src="fav.product.mainImage" :alt="fav.product.name" class="w-full h-full object-cover" />
+            <img v-if="fav.product?.mainImage" :src="fav.product.mainImage" :alt="fav.product.name" class="w-full h-full object-cover" @error="onImgError" />
             <span v-else class="text-gray-300 text-xs">商品图片</span>
             <button class="absolute top-2 right-2 w-7 h-7 bg-white/80 rounded-full flex items-center justify-center text-red-400 hover:text-red-500 transition text-sm" @click.prevent="removeFavorite(fav.productId)">
               ❤️
@@ -37,6 +37,7 @@
 definePageMeta({ layout: 'user' })
 
 const { get, post } = useApi()
+function onImgError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
 const favorites = ref<any[]>([])
 
 if (import.meta.client) {
