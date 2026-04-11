@@ -25,4 +25,18 @@ export default async function adminAuthRoutes(app: FastifyInstance) {
     const admin = await adminAuthService.getAdminProfile(id)
     return success(admin)
   })
+
+  /** PUT /api/v1/admin-auth/password — 修改密码 */
+  app.put('/password', { preHandler: [adminGuard] }, async (request) => {
+    const { id } = request.user as { id: number }
+    const { oldPassword, newPassword } = validate(
+      z.object({
+        oldPassword: z.string().min(1, '请输入原密码'),
+        newPassword: z.string().min(6, '新密码至少6位'),
+      }),
+      request.body,
+    )
+    await adminAuthService.changePassword(id, oldPassword, newPassword)
+    return success(null, '密码修改成功')
+  })
 }

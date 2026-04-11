@@ -32,3 +32,4 @@ pnpm-debug.log*
 # 缓存
 .cache/
 .temp/
+.ace-tool/

@@ -8,7 +8,6 @@ import productRoutes from './routes/product.routes.js'
 import cartRoutes from './routes/cart.routes.js'
 import orderRoutes from './routes/order.routes.js'
 import bannerRoutes from './routes/banner.routes.js'
-import merchantRoutes from './routes/merchant.routes.js'
 import addressRoutes from './routes/address.routes.js'
 import favoriteRoutes from './routes/favorite.routes.js'
 import adminAuthRoutes from './routes/admin-auth.routes.js'
@@ -50,7 +49,6 @@ app.get('/api/v1', async () => {
       cart: '/api/v1/cart',
       orders: '/api/v1/orders',
       banners: '/api/v1/banners',
-      merchants: '/api/v1/merchants',
       addresses: '/api/v1/addresses',
       favorites: '/api/v1/favorites',
       adminAuth: '/api/v1/admin-auth',
@@ -66,7 +64,6 @@ await app.register(productRoutes, { prefix: '/api/v1/products' })
 await app.register(cartRoutes, { prefix: '/api/v1/cart' })
 await app.register(orderRoutes, { prefix: '/api/v1/orders' })
 await app.register(bannerRoutes, { prefix: '/api/v1/banners' })
-await app.register(merchantRoutes, { prefix: '/api/v1/merchants' })
 await app.register(addressRoutes, { prefix: '/api/v1/addresses' })
 await app.register(favoriteRoutes, { prefix: '/api/v1/favorites' })
 await app.register(adminAuthRoutes, { prefix: '/api/v1/admin-auth' })

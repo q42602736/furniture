@@ -45,26 +45,6 @@ export default async function adminRoutes(app: FastifyInstance) {
     return success(null, '更新成功')
   })
 
-  // ========== 商家管理 ==========
-
-  /** GET /api/v1/admin/merchants — 商家列表 */
-  app.get('/merchants', async (request) => {
-    const params = validate(
-      paginationSchema.extend({ status: z.coerce.number().int().optional() }),
-      request.query,
-    )
-    const { list, total } = await adminService.getMerchantList(params.page, params.pageSize, params.status)
-    return paginated(list, total, params.page, params.pageSize)
-  })
-
-  /** PUT /api/v1/admin/merchants/:id/status — 审核/更新商家状态 */
-  app.put<{ Params: { id: string } }>('/merchants/:id/status', async (request) => {
-    const merchantId = Number(request.params.id)
-    const { status } = validate(z.object({ status: z.number().int().min(0).max(2) }), request.body)
-    await adminService.updateMerchantStatus(merchantId, status)
-    return success(null, '更新成功')
-  })
-
   // ========== 订单管理 ==========
 
   /** GET /api/v1/admin/orders — 全平台订单 */
@@ -106,7 +86,6 @@ export default async function adminRoutes(app: FastifyInstance) {
         keyword: z.string().optional(),
         categoryId: z.coerce.number().int().optional(),
         status: z.coerce.number().int().optional(),
-        merchantId: z.coerce.number().int().optional(),
       }),
       request.query,
     )
@@ -114,7 +93,6 @@ export default async function adminRoutes(app: FastifyInstance) {
       keyword: params.keyword,
       categoryId: params.categoryId,
       status: params.status,
-      merchantId: params.merchantId,
     })
     return paginated(list, total, params.page, params.pageSize)
   })
@@ -134,7 +112,6 @@ export default async function adminRoutes(app: FastifyInstance) {
         price: z.number().positive(),
         originalPrice: z.number().positive().optional(),
         categoryId: z.number().int(),
-        merchantId: z.number().int(),
         brandId: z.number().int().optional(),
         images: z.array(z.string()).optional(),
       }),

@@ -66,7 +66,7 @@
         <ul class="space-y-2 text-xs">
           <li><NuxtLink to="/about" class="hover:text-white transition">平台介绍</NuxtLink></li>
           <li><NuxtLink to="/contact" class="hover:text-white transition">联系我们</NuxtLink></li>
-          <li><NuxtLink to="/merchant/join" class="hover:text-white transition">商家入驻</NuxtLink></li>
+          <li><NuxtLink to="/brand" class="hover:text-white transition">品牌馆</NuxtLink></li>
           <li><NuxtLink to="/jobs" class="hover:text-white transition">加入我们</NuxtLink></li>
         </ul>
       </div>

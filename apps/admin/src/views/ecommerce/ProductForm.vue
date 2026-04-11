@@ -119,21 +119,6 @@
           </div>
           <!--end::分类-->
 
-          <!--begin::商家-->
-          <div class="card card-flush py-4 mb-7">
-            <div class="card-header">
-              <div class="card-title"><h2>商家</h2></div>
-            </div>
-            <div class="card-body pt-0">
-              <label class="required form-label">所属商家</label>
-              <select v-model.number="form.merchantId" class="form-select form-select-solid">
-                <option :value="0" disabled>请选择商家</option>
-                <option v-for="m in merchants" :key="m.id" :value="m.id">{{ m.name }}</option>
-              </select>
-            </div>
-          </div>
-          <!--end::商家-->
-
           <!--begin::状态-->
           <div class="card card-flush py-4">
             <div class="card-header">
@@ -172,14 +157,12 @@ const form = reactive({
   price: 0,
   originalPrice: 0,
   categoryId: 0,
-  merchantId: 0,
   status: 1,
   images: [] as { url: string }[],
 })
 const newImageUrl = ref('')
 
 const categories = ref<any[]>([])
-const merchants = ref<any[]>([])
 
 function addImage() {
   const url = newImageUrl.value.trim()
@@ -191,12 +174,8 @@ function addImage() {
 
 async function loadDropdowns() {
   try {
-    const [catRes, merRes]: any[] = await Promise.all([
-      api.get('/categories/tree'),
-      api.get('/admin/merchants', { params: { page: 1, pageSize: 100 } }),
-    ])
+    const catRes: any = await api.get('/categories/tree')
     categories.value = catRes.data
-    merchants.value = merRes.data.list
   } catch {}
 }
 
@@ -212,7 +191,6 @@ async function loadProduct() {
       price: p.price,
       originalPrice: p.originalPrice || 0,
       categoryId: p.categoryId,
-      merchantId: p.merchantId,
       status: p.status ?? 1,
       images: (p.images || []).map((img: any) => ({ url: img.url })),
     })
@@ -224,8 +202,8 @@ async function loadProduct() {
 }
 
 async function handleSave() {
-  if (!form.name || !form.price || !form.categoryId || !form.merchantId) {
-    alert('请填写完整必填信息（名称、价格、分类、商家）')
+  if (!form.name || !form.price || !form.categoryId) {
+    alert('请填写完整必填信息（名称、价格、分类）')
     return
   }
   saving.value = true
@@ -236,7 +214,6 @@ async function handleSave() {
       originalPrice: form.originalPrice || undefined,
       description: form.description || undefined,
       categoryId: form.categoryId,
-      merchantId: form.merchantId,
       status: form.status,
     }
     if (isEdit.value) {

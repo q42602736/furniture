@@ -8,7 +8,6 @@ interface ProductListParams {
   pageSize: number
   categoryId?: number
   brandId?: number
-  merchantId?: number
   keyword?: string
   minPrice?: number
   maxPrice?: number
@@ -18,7 +17,7 @@ interface ProductListParams {
 
 /** 获取商品列表（分页+筛选） */
 export async function getProductList(params: ProductListParams) {
-  const { page, pageSize, categoryId, brandId, merchantId, keyword, minPrice, maxPrice, sort = 'default', status = 1 } = params
+  const { page, pageSize, categoryId, brandId, keyword, minPrice, maxPrice, sort = 'default', status = 1 } = params
 
   const where: Prisma.ProductWhereInput = { status }
 
@@ -30,7 +29,6 @@ export async function getProductList(params: ProductListParams) {
     ]
   }
   if (brandId) where.brandId = brandId
-  if (merchantId) where.merchantId = merchantId
   if (keyword) {
     where.name = { contains: keyword }
   }
@@ -74,7 +72,6 @@ export async function getProductList(params: ProductListParams) {
         skus: { select: { id: true, name: true, price: true, stock: true, image: true } },
         category: { select: { id: true, name: true, slug: true } },
         brand: { select: { id: true, name: true, logo: true } },
-        merchant: { select: { id: true, name: true, logo: true } },
         _count: { select: { reviews: true } },
       },
     }),
@@ -94,7 +91,6 @@ export async function getProductDetail(id: number) {
       attributes: true,
       category: { select: { id: true, name: true, slug: true } },
       brand: { select: { id: true, name: true, logo: true } },
-      merchant: { select: { id: true, name: true, logo: true, description: true } },
       _count: { select: { reviews: true, favorites: true } },
     },
   })
@@ -131,16 +127,14 @@ export async function getRecommendProducts(categoryId: number, excludeId: number
     take: limit,
     include: {
       skus: { select: { price: true }, take: 1, orderBy: { price: 'asc' } },
-      merchant: { select: { id: true, name: true } },
     },
   })
 }
 
-// ==================== 商家端商品管理 ====================
+// ==================== 商品管理 ====================
 
-/** 商家创建商品 */
+/** 创建商品 */
 export async function createProduct(
-  merchantId: number,
   data: {
     name: string
     categoryId: number
@@ -152,14 +146,13 @@ export async function createProduct(
   },
 ) {
   return prisma.product.create({
-    data: { ...data, merchantId },
+    data,
     include: { category: true, brand: true },
   })
 }
 
-/** 商家更新商品 */
+/** 更新商品 */
 export async function updateProduct(
-  merchantId: number,
   productId: number,
   data: {
     name?: string
@@ -172,23 +165,14 @@ export async function updateProduct(
     sort?: number
   },
 ) {
-  // 验证商品归属
-  const product = await prisma.product.findFirst({ where: { id: productId, merchantId } })
-  if (!product) throw new Error('商品不存在')
   return prisma.product.update({ where: { id: productId }, data })
 }
 
 /** 管理商品 SKU */
 export async function upsertProductSkus(
-  merchantId: number,
   productId: number,
   skus: { id?: number; name: string; price: number; stock: number; image?: string }[],
 ) {
-  // 验证归属
-  const product = await prisma.product.findFirst({ where: { id: productId, merchantId } })
-  if (!product) throw new Error('商品不存在')
-
-  // 删除旧的 SKU，创建新的（简化处理）
   await prisma.$transaction([
     prisma.productSku.deleteMany({ where: { productId } }),
     ...skus.map((sku) =>
@@ -197,19 +181,14 @@ export async function upsertProductSkus(
       }),
     ),
   ])
-
   return prisma.productSku.findMany({ where: { productId } })
 }
 
 /** 管理商品图片 */
 export async function upsertProductImages(
-  merchantId: number,
   productId: number,
   images: { url: string; sort?: number }[],
 ) {
-  const product = await prisma.product.findFirst({ where: { id: productId, merchantId } })
-  if (!product) throw new Error('商品不存在')
-
   await prisma.$transaction([
     prisma.productImage.deleteMany({ where: { productId } }),
     ...images.map((img, index) =>
@@ -218,6 +197,5 @@ export async function upsertProductImages(
       }),
     ),
   ])
-
   return prisma.productImage.findMany({ where: { productId }, orderBy: { sort: 'asc' } })
 }

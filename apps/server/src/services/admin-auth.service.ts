@@ -19,6 +19,18 @@ export async function adminLogin(username: string, password: string) {
 
 }
 
+/** 修改管理员密码 */
+export async function changePassword(adminId: number, oldPassword: string, newPassword: string) {
+  const admin = await prisma.admin.findUnique({ where: { id: adminId } })
+  if (!admin) throw new AppError(404, '管理员不存在')
+
+  const valid = await bcrypt.compare(oldPassword, admin.password)
+  if (!valid) throw new AppError(400, '原密码错误')
+
+  const hashed = await bcrypt.hash(newPassword, 10)
+  await prisma.admin.update({ where: { id: adminId }, data: { password: hashed } })
+}
+
 /** 获取管理员信息 */
 export async function getAdminProfile(adminId: number) {
   const admin = await prisma.admin.findUnique({

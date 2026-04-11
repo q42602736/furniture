@@ -52,42 +52,6 @@ model UserAddress {
   @@map("user_addresses")
 }
 
-/// 商家
-model Merchant {
-  id            Int      @id @default(autoincrement())
-  name          String   @db.VarChar(100)
-  logo          String?  @db.VarChar(500)
-  description   String?  @db.Text
-  license       String?  @db.VarChar(500) // 营业执照图片
-  contactName   String   @db.VarChar(50) @map("contact_name")
-  contactPhone  String   @db.VarChar(20) @map("contact_phone")
-  status        Int      @default(0) // 0=待审核 1=正常 2=禁用
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  users    MerchantUser[]
-  products Product[]
-  brands   Brand[]
-
-  @@map("merchants")
-}
-
-/// 商家管理员账号
-model MerchantUser {
-  id         Int      @id @default(autoincrement())
-  merchantId Int      @map("merchant_id")
-  username   String   @unique @db.VarChar(50)
-  password   String   @db.VarChar(255)
-  realName   String?  @db.VarChar(50) @map("real_name")
-  role       String   @default("admin") @db.VarChar(20) // admin/operator
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-
-  merchant Merchant @relation(fields: [merchantId], references: [id])
-
-  @@map("merchant_users")
-}
-
 /// 平台管理员
 model Admin {
   id        Int      @id @default(autoincrement())
@@ -124,15 +88,13 @@ model Category {
 
 /// 品牌
 model Brand {
-  id         Int      @id @default(autoincrement())
-  name       String   @db.VarChar(100)
-  logo       String?  @db.VarChar(500)
-  merchantId Int      @map("merchant_id")
-  sort       Int      @default(0)
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  logo      String?  @db.VarChar(500)
+  sort      Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  merchant Merchant  @relation(fields: [merchantId], references: [id])
   products Product[]
 
   @@map("brands")
@@ -141,7 +103,6 @@ model Brand {
 /// 商品主表
 model Product {
   id          Int      @id @default(autoincrement())
-  merchantId  Int      @map("merchant_id")
   categoryId  Int      @map("category_id")
   brandId     Int?     @map("brand_id")
   name        String   @db.VarChar(200)
@@ -154,7 +115,6 @@ model Product {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  merchant   Merchant       @relation(fields: [merchantId], references: [id])
   category   Category       @relation(fields: [categoryId], references: [id])
   brand      Brand?         @relation(fields: [brandId], references: [id])
   skus       ProductSku[]

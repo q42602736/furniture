@@ -30,7 +30,7 @@ export async function createOrder(params: CreateOrderParams) {
   const cartItems = await prisma.cartItem.findMany({
     where: { id: { in: cartItemIds }, userId },
     include: {
-      product: { select: { id: true, name: true, mainImage: true, status: true, merchantId: true } },
+      product: { select: { id: true, name: true, mainImage: true, status: true } },
       sku: { select: { id: true, name: true, price: true, stock: true, image: true } },
     },
   })
@@ -116,7 +116,7 @@ export async function getOrders(userId: number, status: number | undefined, page
       include: {
         items: {
           include: {
-            product: { select: { id: true, merchantId: true } },
+            product: { select: { id: true } },
           },
         },
       },
@@ -134,9 +134,7 @@ export async function getOrderDetail(userId: number, orderNo: string) {
     include: {
       items: {
         include: {
-          product: {
-            include: { merchant: { select: { id: true, name: true, logo: true } } },
-          },
+          product: true,
         },
       },
       payments: true,

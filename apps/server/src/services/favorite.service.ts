@@ -37,7 +37,6 @@ export async function getFavorites(userId: number, page: number, pageSize: numbe
             mainImage: true,
             status: true,
             salesCount: true,
-            merchant: { select: { id: true, name: true } },
           },
           include: {
             skus: { select: { price: true }, take: 1, orderBy: { price: 'asc' } },

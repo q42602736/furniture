@@ -25,20 +25,11 @@
           <span class="w-[80px] text-center">操作</span>
         </div>
 
-        <!-- 按店铺分组 -->
-        <div v-for="group in groupedCart" :key="group.merchantId" class="bg-white mb-2 last:mb-0">
-          <!-- 店铺名 -->
-          <div class="px-5 py-2.5 border-b border-gray-50 flex items-center gap-2">
-            <input type="checkbox" :checked="isMerchantAllSelected(group.merchantId)" class="w-4 h-4 accent-orange-500 cursor-pointer" @change="toggleMerchant(group.merchantId)" />
-            <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4"/>
-            </svg>
-            <span class="text-sm font-medium text-gray-700">{{ group.merchantName }}</span>
-          </div>
-
+        <!-- 商品列表 -->
+        <div class="bg-white">
           <!-- 商品行 -->
           <div
-            v-for="item in group.items"
+            v-for="item in cartItems"
             :key="item.id"
             class="px-5 py-4 flex items-center border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition"
           >
@@ -151,8 +142,6 @@ interface CartItem {
   quantity: number
   selected: boolean
   image: string
-  merchantId: number
-  merchantName: string
 }
 
 const cartItems = reactive<CartItem[]>([])
@@ -177,8 +166,6 @@ async function loadCart() {
           quantity: item.quantity,
           selected: false,
           image: item.sku?.image || '',
-          merchantId: item.product?.merchant?.id || 0,
-          merchantName: item.product?.merchant?.name || '店铺',
         })
       }
     }
@@ -198,28 +185,6 @@ const selectAll = computed({
 
 const selectedCount = computed(() => cartItems.filter(i => i.selected).length)
 const totalPrice = computed(() => cartItems.filter(i => i.selected).reduce((sum, i) => sum + i.price * i.quantity, 0))
-
-const groupedCart = computed(() => {
-  const map = new Map<number, { merchantId: number; merchantName: string; items: CartItem[] }>()
-  for (const item of cartItems) {
-    if (!map.has(item.merchantId)) {
-      map.set(item.merchantId, { merchantId: item.merchantId, merchantName: item.merchantName, items: [] })
-    }
-    map.get(item.merchantId)!.items.push(item)
-  }
-  return Array.from(map.values())
-})
-
-function isMerchantAllSelected(merchantId: number) {
-  const items = cartItems.filter(i => i.merchantId === merchantId)
-  return items.length > 0 && items.every(i => i.selected)
-}
-
-function toggleMerchant(merchantId: number) {
-  const items = cartItems.filter(i => i.merchantId === merchantId)
-  const allSelected = items.every(i => i.selected)
-  items.forEach(i => i.selected = !allSelected)
-}
 
 async function updateQuantity(item: CartItem, newQty: number) {
   if (newQty < 1) return

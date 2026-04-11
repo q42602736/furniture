@@ -18,8 +18,8 @@ export function registerErrorHandler(app: FastifyInstance) {
     }
 
     // Fastify 内置校验错误
-    if (error.validation) {
-      return reply.status(400).send(fail(error.message))
+    if (error && typeof error === 'object' && 'validation' in error && 'message' in error) {
+      return reply.status(400).send(fail(String(error.message)))
     }
 
     // 未知错误

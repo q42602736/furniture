@@ -70,10 +70,6 @@
               <span class="text-gray-500 w-14 shrink-0">品牌</span>
               <span class="text-orange-500">{{ product?.brand?.name || '--' }}</span>
             </div>
-            <div class="flex items-center gap-4">
-              <span class="text-gray-500 w-14 shrink-0">店铺</span>
-              <span class="text-orange-500">{{ product?.merchant?.name || '--' }}</span>
-            </div>
           </div>
 
           <!-- SKU 选择 -->
@@ -216,31 +212,19 @@
 
         <!-- 右侧栏 -->
         <div class="hidden lg:block w-[280px] shrink-0 space-y-4">
-          <!-- 店铺信息卡 -->
-          <div class="bg-white rounded-lg p-4">
+          <!-- 品牌信息卡 -->
+          <div class="bg-white rounded-lg p-4" v-if="product?.brand">
             <div class="flex items-center gap-3 mb-3">
-              <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold">美</div>
+              <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold overflow-hidden">
+                <img v-if="product.brand.logo" :src="product.brand.logo" class="w-full h-full object-cover" />
+                <span v-else>{{ (product.brand.name || '品')[0] }}</span>
+              </div>
               <div>
-                <p class="text-sm font-medium text-gray-700">{{ product?.merchant?.name || '--' }}</p>
-                <p class="text-xs text-gray-400">已入驻 2 年</p>
+                <p class="text-sm font-medium text-gray-700">{{ product.brand.name }}</p>
               </div>
             </div>
-            <div class="grid grid-cols-3 gap-2 text-center border-y border-gray-100 py-3 mb-3">
-              <div>
-                <p class="text-orange-500 font-bold text-sm">4.9</p>
-                <p class="text-[10px] text-gray-400">描述</p>
-              </div>
-              <div>
-                <p class="text-orange-500 font-bold text-sm">4.8</p>
-                <p class="text-[10px] text-gray-400">服务</p>
-              </div>
-              <div>
-                <p class="text-orange-500 font-bold text-sm">4.9</p>
-                <p class="text-[10px] text-gray-400">物流</p>
-              </div>
-            </div>
-            <NuxtLink to="/merchant/1" class="block w-full text-center py-2 border border-orange-500 text-orange-500 text-sm rounded hover:bg-orange-50 transition">
-              进入店铺
+            <NuxtLink :to="`/brand/${product.brand.id}`" class="block w-full text-center py-2 border border-orange-500 text-orange-500 text-sm rounded hover:bg-orange-50 transition">
+              进入品牌馆
             </NuxtLink>
           </div>
 

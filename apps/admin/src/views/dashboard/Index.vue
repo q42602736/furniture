@@ -130,7 +130,7 @@
               <span class="fs-2 fw-bold text-success me-3">+{{ stats.todayUserCount }}</span>
               <span class="badge badge-light-info fs-7">
                 <KTIcon icon-name="people" icon-class="fs-6 text-info me-1" />
-                {{ stats.merchantCount }} 商家
+                活跃用户
               </span>
             </div>
           </div>
@@ -180,12 +180,12 @@
                   <div class="d-flex align-items-center">
                     <div class="symbol symbol-40px me-3">
                       <div class="symbol-label bg-light-success">
-                        <KTIcon icon-name="shop" icon-class="fs-2 text-success" />
+                        <KTIcon icon-name="basket" icon-class="fs-2 text-success" />
                       </div>
                     </div>
                     <div>
-                      <div class="fs-4 fw-bold text-gray-900">{{ stats.merchantCount }}</div>
-                      <div class="fs-7 text-gray-500">入驻商家</div>
+                      <div class="fs-4 fw-bold text-gray-900">{{ stats.orderCount }}</div>
+                      <div class="fs-7 text-gray-500">累计订单</div>
                     </div>
                   </div>
                 </div>
@@ -274,7 +274,6 @@ const todayChartReady = ref(false)
 
 const stats = ref({
   userCount: 0,
-  merchantCount: 0,
   productCount: 0,
   orderCount: 0,
   todayOrderCount: 0,

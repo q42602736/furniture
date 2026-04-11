@@ -55,7 +55,7 @@
               <span class="text-orange-500 font-bold">¥{{ product.skus?.[0]?.price || '--' }}</span>
             </div>
             <div class="flex items-center justify-between mt-2 text-xs text-gray-400">
-              <span>{{ product.merchant?.name || '' }}</span>
+              <span>{{ product.brand?.name || '' }}</span>
               <span>{{ product._count?.reviews || 0 }} 评价</span>
             </div>
           </div>

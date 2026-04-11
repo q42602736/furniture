@@ -1,17 +1,13 @@
 import prisma from '../prisma/index.js'
 import { AppError } from '../utils/errors.js'
 
-/** 获取购物车列表（按商家分组） */
+/** 获取购物车列表 */
 export async function getCartItems(userId: number) {
   const items = await prisma.cartItem.findMany({
     where: { userId },
     orderBy: { createdAt: 'desc' },
     include: {
-      product: {
-        include: {
-          merchant: { select: { id: true, name: true, logo: true } },
-        },
-      },
+      product: true,
       sku: true,
     },
   })

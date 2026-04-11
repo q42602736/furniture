@@ -21,19 +21,6 @@ export interface UserAddress {
   isDefault: boolean
 }
 
-// ==================== 商家 ====================
-
-export interface Merchant {
-  id: number
-  name: string
-  logo: string | null
-  description: string | null
-  contactName: string
-  contactPhone: string
-  status: number // 0=待审核 1=正常 2=禁用
-  createdAt: string
-}
-
 // ==================== 商品 ====================
 
 export interface Category {
@@ -50,12 +37,10 @@ export interface Brand {
   id: number
   name: string
   logo: string | null
-  merchantId: number
 }
 
 export interface Product {
   id: number
-  merchantId: number
   categoryId: number
   brandId: number | null
   name: string

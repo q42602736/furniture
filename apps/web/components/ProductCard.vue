@@ -15,7 +15,7 @@
         <span v-if="product.originalPrice" class="text-xs text-gray-400 line-through">¥{{ product.originalPrice }}</span>
       </div>
       <div v-if="showMeta" class="flex items-center justify-between mt-2 text-xs text-gray-400">
-        <span>{{ product.merchant || `已售 ${product.sales || 0}` }}</span>
+        <span>已售 {{ product.sales || 0 }}</span>
         <span v-if="product.comments">{{ product.comments }} 评价</span>
         <span v-else-if="product.sales">{{ product.sales }} 人付款</span>
       </div>
@@ -33,7 +33,6 @@ export interface ProductCardItem {
   sales?: number
   comments?: number
   tag?: string
-  merchant?: string
 }
 
 defineProps<{

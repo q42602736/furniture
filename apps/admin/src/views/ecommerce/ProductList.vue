@@ -47,7 +47,6 @@
             <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
               <th class="min-w-200px">商品</th>
               <th class="min-w-100px">分类</th>
-              <th class="min-w-100px">商家</th>
               <th class="text-end min-w-80px">价格</th>
               <th class="text-end min-w-70px">库存</th>
               <th class="text-end min-w-80px">状态</th>
@@ -56,13 +55,13 @@
           </thead>
           <tbody class="fw-semibold text-gray-600">
             <tr v-if="loading">
-              <td colspan="7" class="text-center py-8">
+              <td colspan="6" class="text-center py-8">
                 <span class="spinner-border spinner-border-sm align-middle me-2"></span>
                 加载中...
               </td>
             </tr>
             <tr v-else-if="!list.length">
-              <td colspan="7" class="text-center text-muted py-8">暂无商品数据</td>
+              <td colspan="6" class="text-center text-muted py-8">暂无商品数据</td>
             </tr>
             <tr v-for="item in list" :key="item.id">
               <!--begin::商品信息-->
@@ -86,7 +85,6 @@
               </td>
               <!--end::商品信息-->
               <td>{{ item.category?.name || '-' }}</td>
-              <td>{{ item.merchant?.name || '-' }}</td>
               <td class="text-end pe-0">
                 <span class="fw-bold text-danger">¥{{ item.price }}</span>
               </td>
