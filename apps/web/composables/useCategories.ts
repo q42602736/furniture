@@ -195,6 +195,62 @@ const categoriesData: CategoryItem[] = [
     ],
   },
   {
+    name: '装修设计',
+    slug: 'interior-design',
+    icon: '🎨',
+    image: 'https://images.pexels.com/photos/20390760/pexels-photo-20390760.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    children: [
+      {
+        name: '全屋设计',
+        slug: 'whole-house-design',
+        image: 'https://images.pexels.com/photos/20390760/pexels-photo-20390760.jpeg?auto=compress&cs=tinysrgb&w=1600',
+      },
+      {
+        name: '局部改造',
+        slug: 'partial-renovation',
+        image: 'https://images.pexels.com/photos/19899074/pexels-photo-19899074.jpeg?auto=compress&cs=tinysrgb&w=1600',
+      },
+      {
+        name: '软装搭配',
+        slug: 'soft-furnishing',
+        image: 'https://images.pexels.com/photos/13675288/pexels-photo-13675288.jpeg?auto=compress&cs=tinysrgb&w=1600',
+      },
+      {
+        name: '效果图深化',
+        slug: 'design-visualization',
+        image: 'https://images.pexels.com/photos/19899074/pexels-photo-19899074.jpeg?auto=compress&cs=tinysrgb&w=1600',
+      },
+    ],
+  },
+  {
+    name: '乡镇自建房',
+    slug: 'township-self-build',
+    icon: '🏡',
+    image: 'https://images.pexels.com/photos/8134821/pexels-photo-8134821.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    children: [
+      {
+        name: '户型规划',
+        slug: 'house-layout-planning',
+        image: 'https://images.pexels.com/photos/8134821/pexels-photo-8134821.jpeg?auto=compress&cs=tinysrgb&w=1600',
+      },
+      {
+        name: '外立面设计',
+        slug: 'facade-design',
+        image: 'https://images.pexels.com/photos/1115804/pexels-photo-1115804.jpeg?auto=compress&cs=tinysrgb&w=1600',
+      },
+      {
+        name: '施工建造',
+        slug: 'self-build-construction',
+        image: 'https://images.pexels.com/photos/1396132/pexels-photo-1396132.jpeg?auto=compress&cs=tinysrgb&w=1600',
+      },
+      {
+        name: '院落配套',
+        slug: 'courtyard-support',
+        image: 'https://images.pexels.com/photos/1115804/pexels-photo-1115804.jpeg?auto=compress&cs=tinysrgb&w=1600',
+      },
+    ],
+  },
+  {
     name: '助农帮扶',
     slug: 'rural-support',
     icon: '🌾',

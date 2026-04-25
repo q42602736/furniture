@@ -3,21 +3,60 @@
     <section class="bg-[#f5f5f5]">
       <div class="max-w-[1200px] mx-auto px-4 py-4">
         <div class="flex gap-4">
-          <div class="hidden lg:block w-[210px] shrink-0 bg-[#3d3d3f] rounded-lg overflow-hidden">
-            <NuxtLink
-              v-for="cat in mainCategories"
-              :key="cat.slug"
-              :to="`/category/${cat.slug}`"
-              class="flex items-center justify-between px-4 py-[10px] text-gray-200 text-sm hover:bg-[#555] hover:text-white transition"
+          <div
+            class="hidden lg:block w-[210px] h-[420px] shrink-0 relative z-20"
+            @mouseleave="activeSidebarSlug = ''"
+          >
+            <div class="bg-[#3d3d3f] rounded-lg overflow-hidden h-full">
+              <div
+                v-for="cat in categories"
+                :key="cat.slug"
+                @mouseenter="activeSidebarSlug = cat.slug"
+              >
+                <NuxtLink
+                  :to="`/category/${cat.slug}`"
+                  class="flex items-center justify-between px-4 py-[10px] text-gray-200 text-sm hover:bg-[#555] hover:text-white transition"
+                >
+                  <span>{{ cat.name }}</span>
+                  <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </NuxtLink>
+              </div>
+            </div>
+
+            <div
+              v-if="activeSidebarCategory?.children?.length"
+              class="absolute top-0 left-[222px] w-[420px] rounded-[28px] bg-white border border-gray-100 shadow-2xl p-6"
             >
-              <span>{{ cat.name }}</span>
-              <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </NuxtLink>
+              <div class="flex items-center justify-between gap-4 mb-4">
+                <div>
+                  <p class="text-lg font-semibold text-gray-800">{{ activeSidebarCategory.name }}</p>
+                  <p class="mt-1 text-xs text-gray-400">{{ activeSidebarCategory.children.length }} 项服务</p>
+                </div>
+                <NuxtLink
+                  :to="`/category/${activeSidebarCategory.slug}`"
+                  class="shrink-0 rounded-full border border-gray-200 px-3 py-1.5 text-xs text-gray-500 hover:border-orange-500 hover:text-orange-500 transition"
+                >
+                  查看全部
+                </NuxtLink>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <NuxtLink
+                  v-for="child in activeSidebarCategory.children"
+                  :key="child.slug"
+                  :to="`/category/${child.slug}`"
+                  class="rounded-2xl bg-[#f7f7f7] px-4 py-3 hover:bg-orange-50 transition"
+                >
+                  <p class="text-sm font-medium text-gray-800">{{ child.name }}</p>
+                  <p class="mt-1 text-xs text-gray-400">{{ activeSidebarCategory.name }}</p>
+                </NuxtLink>
+              </div>
+            </div>
           </div>
 
-          <div class="flex-1 relative rounded-[24px] overflow-hidden bg-slate-900 min-h-[420px]">
+          <div class="flex-1 relative rounded-[24px] overflow-hidden bg-slate-900 h-[420px]">
             <template v-if="heroBanners.length">
               <div
                 v-for="(banner, idx) in heroBanners"
@@ -240,6 +279,7 @@ interface HomeBanner {
 
 const currentBanner = ref(0)
 const activeStyle = ref('全部')
+const activeSidebarSlug = ref('')
 
 function onImgError(e: Event) {
   (e.target as HTMLImageElement).style.display = 'none'
@@ -251,7 +291,10 @@ function openCategory(slug: string) {
 
 const { categories } = useCategories()
 
-const mainCategories = computed(() => categories.value.map(category => ({ name: category.name, slug: category.slug })))
+const activeSidebarCategory = computed(() =>
+  categories.value.find(category => category.slug === activeSidebarSlug.value) || null,
+)
+
 const showcaseCategories = computed(() => categories.value)
 
 const categoryTabs = computed(() => ['全部', ...categories.value.map(category => category.name)])
@@ -272,7 +315,7 @@ const featuredItems = computed(() => {
 
 const spaceCategories = computed(() =>
   categories.value.filter(category =>
-    ['cabinet-custom', 'bath-hardware', 'appliances', 'building-materials', 'lighting'].includes(category.slug),
+    ['cabinet-custom', 'bath-hardware', 'appliances', 'building-materials', 'lighting', 'interior-design', 'township-self-build'].includes(category.slug),
   ),
 )
 
@@ -293,9 +336,14 @@ const heroBanners = computed<HomeBanner[]>(() => {
   }
 
   if (middleCategories.length && middleCategories[0]?.image) {
+    const middleCategoryTitle = middleCategories
+      .map(category => category.name)
+      .slice(0, 4)
+      .join(' / ')
+
     banners.push({
       label: '分类',
-      title: middleCategories.map(category => category.name).join(' / '),
+      title: middleCategories.length > 4 ? `${middleCategoryTitle} 等` : middleCategoryTitle,
       image: middleCategories[0].image!,
       link: `/category/${middleCategories[0].slug}`,
       tags: middleCategories.map(category => category.name),
