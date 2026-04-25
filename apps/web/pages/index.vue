@@ -1,10 +1,8 @@
 <template>
   <div>
-    <!-- ========== Banner 区域 ========== -->
     <section class="bg-[#f5f5f5]">
       <div class="max-w-[1200px] mx-auto px-4 py-4">
         <div class="flex gap-4">
-          <!-- 左侧分类（首页常驻展示） -->
           <div class="hidden lg:block w-[210px] shrink-0 bg-[#3d3d3f] rounded-lg overflow-hidden">
             <NuxtLink
               v-for="cat in mainCategories"
@@ -14,84 +12,70 @@
             >
               <span>{{ cat.name }}</span>
               <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </NuxtLink>
           </div>
 
-          <!-- Banner 轮播 -->
-          <div class="flex-1 relative rounded-lg overflow-hidden bg-gray-200 min-h-[380px]">
-            <template v-if="banners.length">
+          <div class="flex-1 relative rounded-[24px] overflow-hidden bg-slate-900 min-h-[420px]">
+            <template v-if="heroBanners.length">
               <div
-                v-for="(banner, idx) in banners"
-                :key="banner.id || idx"
+                v-for="(banner, idx) in heroBanners"
+                :key="banner.title"
                 :class="[
                   'absolute inset-0 transition-opacity duration-700',
-                  idx === currentBanner ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                  idx === currentBanner ? 'opacity-100 z-10' : 'opacity-0 z-0',
                 ]"
               >
-                <div class="flex items-center justify-center h-full text-white" :style="{ background: banner.image ? 'none' : gradients[idx % gradients.length] }">
-                  <img v-if="banner.image" :src="banner.image" :alt="banner.title" class="w-full h-full object-cover" @error="onImgError" />
-                  <div v-else class="text-center">
-                    <h2 class="text-3xl font-bold mb-2">{{ banner.title }}</h2>
+                <img :src="banner.image" :alt="banner.title" class="h-full w-full object-cover" @error="onImgError" />
+                <div class="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/45 to-slate-950/10" />
+                <div class="relative h-full flex items-end md:items-center">
+                  <div class="p-8 md:p-10 max-w-[720px] text-white">
+                    <p class="text-xs font-semibold tracking-[0.35em] text-orange-300">{{ banner.label }}</p>
+                    <h2 class="mt-4 text-3xl md:text-4xl font-bold leading-tight">{{ banner.title }}</h2>
+                    <div class="mt-5 flex flex-wrap gap-2">
+                      <span
+                        v-for="item in banner.tags"
+                        :key="item"
+                        class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/85 backdrop-blur-sm"
+                      >
+                        {{ item }}
+                      </span>
+                    </div>
+                    <NuxtLink
+                      :to="banner.link"
+                      class="mt-6 inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-orange-600 transition"
+                    >
+                      查看
+                      <span>→</span>
+                    </NuxtLink>
                   </div>
                 </div>
               </div>
             </template>
-            <div v-else class="flex items-center justify-center h-full">
-              <span class="text-gray-400">加载中...</span>
-            </div>
-            <!-- 指示器 -->
-            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+
+            <div class="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 gap-2">
               <button
-                v-for="(_, idx) in banners"
+                v-for="(_, idx) in heroBanners"
                 :key="idx"
                 :class="[
-                  'w-8 h-1.5 rounded-full transition-all',
-                  idx === currentBanner ? 'bg-white' : 'bg-white/40'
+                  'h-1.5 rounded-full transition-all',
+                  idx === currentBanner ? 'w-10 bg-white' : 'w-6 bg-white/40',
                 ]"
                 @click="currentBanner = idx"
               />
-            </div>
-          </div>
-
-          <!-- 右侧信息栏 -->
-          <div class="hidden xl:flex flex-col w-[210px] shrink-0 gap-3">
-            <div class="bg-white rounded-lg p-4 flex-1">
-              <div class="flex items-center gap-2 mb-3">
-                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-400 text-sm">头像</div>
-                <div>
-                  <p class="text-sm font-medium">Hi，欢迎来到美家优选</p>
-                  <div class="flex gap-2 mt-1">
-                    <NuxtLink to="/login" class="text-xs text-orange-500 border border-orange-500 rounded px-2 py-0.5">登录</NuxtLink>
-                    <NuxtLink to="/register" class="text-xs text-gray-500 border border-gray-300 rounded px-2 py-0.5">注册</NuxtLink>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="bg-white rounded-lg p-4 flex-1">
-              <h4 class="text-sm font-medium mb-2 text-gray-700">公告</h4>
-              <ul class="text-xs text-gray-500 space-y-1.5">
-                <li class="truncate">· 全场家具正品保障，假一赔十</li>
-                <li class="truncate">· 满3000包邮包安装</li>
-                <li class="truncate">· 7天无理由退换货</li>
-              </ul>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ========== 唯美风尚（精选推荐） ========== -->
     <section class="max-w-[1200px] mx-auto px-4 py-8">
-      <div class="flex items-center justify-between mb-5">
-        <div>
-          <h2 class="text-xl font-bold text-gray-800">唯美风尚</h2>
-          <p class="text-sm text-gray-400 mt-0.5">精选品质家居，打造理想生活空间</p>
-        </div>
-        <div class="flex gap-3 text-sm">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+        <h2 class="text-xl font-bold text-gray-800">平台精选</h2>
+        <div class="flex flex-wrap gap-3 text-sm">
           <span
-            v-for="style in designStyles"
+            v-for="style in categoryTabs"
             :key="style"
             class="px-3 py-1 rounded-full border cursor-pointer transition"
             :class="activeStyle === style ? 'bg-orange-500 text-white border-orange-500' : 'text-gray-500 border-gray-200 hover:border-orange-500 hover:text-orange-500'"
@@ -101,280 +85,247 @@
           </span>
         </div>
       </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <NuxtLink
-          v-for="product in recommendProducts"
-          :key="product.id"
-          :to="`/product/${product.id}`"
-          class="group bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-lg transition-all cursor-pointer"
+          v-for="item in featuredItems"
+          :key="item.slug"
+          :to="`/category/${item.slug}`"
+          class="group bg-white rounded-[24px] overflow-hidden border border-gray-100 hover:shadow-lg transition-all"
         >
-          <div class="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
-            <img v-if="product.mainImage" :src="product.mainImage" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
-            <span v-else class="text-gray-400 text-sm">商品图片</span>
-            <div class="absolute top-2 left-2 bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded">在售</div>
+          <div class="relative aspect-[4/3] overflow-hidden bg-slate-100">
+            <img
+              v-if="item.image"
+              :src="item.image"
+              :alt="item.name"
+              class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              @error="onImgError"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent" />
+            <div class="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-[11px] font-medium text-gray-700">
+              {{ item.parentName }}
+            </div>
           </div>
-          <div class="p-3">
-            <p class="text-xs text-orange-500 mb-1">{{ product.brand?.name || '品牌' }}</p>
-            <p class="text-sm font-medium text-gray-700 truncate group-hover:text-orange-500 transition">{{ product.name }}</p>
-            <p class="text-orange-500 font-bold text-sm mt-1">¥{{ product.skus?.[0]?.price || '--' }}</p>
+          <div class="p-4">
+            <h3 class="text-base font-semibold text-gray-800 leading-6">{{ item.name }}</h3>
           </div>
         </NuxtLink>
       </div>
     </section>
 
-    <!-- ========== 品牌秀场 ========== -->
     <section class="bg-[#fafafa] py-8">
       <div class="max-w-[1200px] mx-auto px-4">
-        <div class="flex items-center justify-between mb-5">
-          <h2 class="text-xl font-bold text-gray-800">品牌秀场</h2>
-          <NuxtLink to="/brand" class="text-sm text-orange-500 hover:underline">查看全部品牌 →</NuxtLink>
+        <div class="mb-5">
+          <h2 class="text-xl font-bold text-gray-800">分类轮播</h2>
         </div>
-        <!-- 品牌滚动区域 -->
+
         <div class="overflow-hidden">
           <div class="flex gap-4 animate-marquee">
-            <div
-              v-for="brand in brandList"
-              :key="brand.id || brand.name"
-              class="shrink-0 w-[140px] h-[80px] bg-white rounded-lg border border-gray-100 flex items-center justify-center hover:shadow-md hover:border-orange-200 transition cursor-pointer overflow-hidden"
-            >
-              <img v-if="brand.logo" :src="brand.logo" :alt="brand.name" class="w-full h-full object-contain p-2" @error="onImgError" />
-              <span v-else class="text-sm text-gray-500 font-medium">{{ brand.name }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========== 分类楼层 ========== -->
-    <section
-      v-for="floor in categoryFloors"
-      :key="floor.slug"
-      class="max-w-[1200px] mx-auto px-4 py-8"
-    >
-      <!-- 楼层标题 -->
-      <div class="flex items-center justify-between mb-5">
-        <div class="flex items-center gap-4">
-          <h2 class="text-xl font-bold text-gray-800">{{ floor.name }}</h2>
-          <div class="flex gap-2 text-sm">
             <NuxtLink
-              v-for="sub in floor.children"
-              :key="sub.slug"
-              :to="`/category/${sub.slug}`"
-              class="text-gray-400 hover:text-orange-500 transition"
+              v-for="category in carouselCategories"
+              :key="`${category.slug}-${category.name}`"
+              :to="`/category/${category.slug}`"
+              class="group relative shrink-0 w-[320px] h-[200px] rounded-[24px] overflow-hidden border border-gray-100 bg-white"
             >
-              {{ sub.name }}
+              <img
+                v-if="category.image"
+                :src="category.image"
+                :alt="category.name"
+                class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                @error="onImgError"
+              />
+              <div class="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/45 to-transparent" />
+              <div class="relative h-full p-5 text-white flex flex-col justify-between">
+                <div>
+                  <p class="text-[11px] tracking-[0.25em] text-orange-200">{{ category.children.length }} 项</p>
+                  <h3 class="mt-2 text-lg font-semibold">{{ category.name }}</h3>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    v-for="child in category.children"
+                    :key="child.slug"
+                    class="rounded-full border border-white/15 bg-black/15 px-3 py-1 text-xs text-white/85 backdrop-blur-sm"
+                  >
+                    {{ child.name }}
+                  </span>
+                </div>
+              </div>
             </NuxtLink>
-          </div>
-        </div>
-        <NuxtLink
-          :to="`/category/${floor.slug}`"
-          class="text-sm text-orange-500 hover:underline"
-        >
-          查看更多 →
-        </NuxtLink>
-      </div>
-
-      <!-- 楼层内容：左侧大图 + 右侧商品网格 -->
-      <div class="flex gap-4">
-        <!-- 左侧分类大图 -->
-        <div class="hidden md:block w-[234px] shrink-0 rounded-lg overflow-hidden bg-gradient-to-b" :class="floor.gradient">
-          <div class="p-5 h-full flex flex-col justify-between text-white">
-            <div>
-              <h3 class="text-lg font-bold mb-2">{{ floor.name }}</h3>
-              <p class="text-sm opacity-80">{{ floor.desc }}</p>
-            </div>
-            <NuxtLink :to="`/category/${floor.slug}`" class="text-sm opacity-80 hover:opacity-100 transition">
-              进入频道 →
-            </NuxtLink>
-          </div>
-        </div>
-
-        <!-- 右侧商品网格 -->
-        <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
-          <NuxtLink
-            v-for="product in (floorProducts[floor.slug] || [])"
-            :key="product.id"
-            :to="`/product/${product.id}`"
-            class="bg-white border border-gray-100 rounded-lg overflow-hidden hover:shadow-md transition cursor-pointer group"
-          >
-            <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-              <img v-if="product.mainImage" :src="product.mainImage" :alt="product.name" class="w-full h-full object-cover" @error="onImgError" />
-              <span v-else class="text-gray-300 text-xs">{{ floor.name }}商品图片</span>
-            </div>
-            <div class="p-2.5">
-              <p class="text-xs text-gray-500 truncate">{{ product.brand?.name || '品牌' }} · {{ product.name }}</p>
-              <p class="text-orange-500 font-bold text-sm mt-1">¥{{ product.skus?.[0]?.price || '--' }}</p>
-            </div>
-          </NuxtLink>
-          <div
-            v-for="i in Math.max(0, 8 - (floorProducts[floor.slug]?.length || 0))"
-            :key="'placeholder-' + i"
-            class="bg-white border border-gray-100 rounded-lg overflow-hidden"
-          >
-            <div class="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-              <span class="text-gray-300 text-xs">{{ floor.name }}商品图片</span>
-            </div>
-            <div class="p-2.5">
-              <p class="text-xs text-gray-500 truncate">{{ floor.name }}商品</p>
-              <p class="text-orange-500 font-bold text-sm mt-1">¥--</p>
-            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ========== 服务保障 ========== -->
-    <section class="bg-[#fafafa] py-8 mt-4">
-      <div class="max-w-[1200px] mx-auto px-4">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div v-for="service in services" :key="service.title" class="flex items-center gap-3">
-            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0">
-              <span class="text-2xl">{{ service.icon }}</span>
+    <section class="max-w-[1200px] mx-auto px-4 py-8">
+      <div class="flex items-center justify-between gap-4 mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">全部分类</h2>
+        <span class="text-sm text-gray-400">{{ showcaseCategories.length }} 个分类</span>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-4">
+        <article
+          v-for="category in showcaseCategories"
+          :key="category.slug"
+          class="group relative overflow-hidden rounded-[28px] min-h-[360px] border border-black/5 shadow-sm"
+        >
+          <img
+            v-if="category.image"
+            :src="category.image"
+            :alt="category.name"
+            class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            @error="onImgError"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/35 to-transparent" />
+
+          <div class="relative h-full p-6 md:p-7 text-white flex flex-col justify-between">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/12 text-xl backdrop-blur-sm">
+                  {{ category.icon }}
+                </span>
+                <div>
+                  <h3 class="text-2xl font-semibold tracking-[0.02em]">{{ category.name }}</h3>
+                  <p class="mt-1 text-xs text-white/75">{{ category.children.length }} 项</p>
+                </div>
+              </div>
+              <NuxtLink
+                :to="`/category/${category.slug}`"
+                class="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs text-white hover:bg-white/15 transition"
+              >
+                查看
+              </NuxtLink>
             </div>
-            <div>
-              <p class="text-sm font-medium text-gray-700">{{ service.title }}</p>
-              <p class="text-xs text-gray-400">{{ service.desc }}</p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-6">
+              <NuxtLink
+                v-for="sub in category.children"
+                :key="sub.slug"
+                :to="`/category/${sub.slug}`"
+                class="overflow-hidden rounded-2xl border border-white/15 bg-black/15 backdrop-blur-sm"
+              >
+                <div class="h-20 bg-white/10">
+                  <img
+                    v-if="sub.image"
+                    :src="sub.image"
+                    :alt="sub.name"
+                    class="h-full w-full object-cover"
+                    @error="onImgError"
+                  />
+                </div>
+                <p class="px-3 py-2 text-xs text-white/90">{{ sub.name }}</p>
+              </NuxtLink>
             </div>
           </div>
-        </div>
+        </article>
       </div>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-const { get } = useApi()
-const currentBanner = ref(0)
-const activeStyle = ref('意式美学')
-function onImgError(e: Event) { (e.target as HTMLImageElement).style.display = 'none' }
-
-const gradients = [
-  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-]
-
-// 从 API 获取 banner
-const banners = ref<any[]>([
-  { title: '意式极简 轻奢生活', image: '' },
-  { title: '奶油风系列 温暖家居', image: '' },
-  { title: '实木工坊 匠心之作', image: '' },
-])
-if (import.meta.client) {
-  get('/v1/banners').then((res: any) => {
-    if (res?.data?.length) banners.value = res.data
-  }).catch(() => {})
+interface HomeBanner {
+  label: string
+  title: string
+  image: string
+  link: string
+  tags: string[]
 }
 
-const designStyles = ['意式美学', 'INS奶油风', '现代艺术', '木本侘寂']
+const currentBanner = ref(0)
+const activeStyle = ref('全部')
 
-// 从 API 获取品牌列表
-const brandList = ref<any[]>([
-  { name: '欧瑞仕' }, { name: '卡琪朵' }, { name: '慕梵希' }, { name: '罗曼仕' },
-])
-if (import.meta.client) {
-  get('/v1/brands').then((res: any) => {
-    const list = res?.data?.list || res?.data || []
-    if (list.length) {
-      // 复制一份实现无缝滚动
-      brandList.value = [...list, ...list]
-    }
-  }).catch(() => {})
+function onImgError(e: Event) {
+  (e.target as HTMLImageElement).style.display = 'none'
 }
 
 const { categories } = useCategories()
-const mainCategories = computed(() => categories.value.map(c => ({ name: c.name, slug: c.slug })))
 
-// 从 API 获取推荐商品
-const recommendProducts = ref<any[]>([])
-if (import.meta.client) {
-  get('/v1/products', { page: 1, pageSize: 4, sort: 'newest' }).then((res: any) => {
-    if (res?.data?.list) recommendProducts.value = res.data.list
-  }).catch(() => {})
-}
+const mainCategories = computed(() => categories.value.map(category => ({ name: category.name, slug: category.slug })))
+const showcaseCategories = computed(() => categories.value)
 
-const categoryFloors = [
-  {
-    name: '客厅', slug: 'living-room',
-    desc: '品质沙发 · 精选茶几 · 电视柜',
-    gradient: 'from-orange-400 to-orange-600',
-    children: [
-      { name: '沙发', slug: 'sofa' },
-      { name: '茶几', slug: 'coffee-table' },
-      { name: '电视柜', slug: 'tv-cabinet' },
-      { name: '休闲椅', slug: 'lounge-chair' },
-    ],
-  },
-  {
-    name: '卧室', slug: 'bedroom',
-    desc: '舒适好床 · 优质床垫 · 收纳柜',
-    gradient: 'from-blue-400 to-blue-600',
-    children: [
-      { name: '床', slug: 'bed' },
-      { name: '床头柜', slug: 'nightstand' },
-      { name: '床垫', slug: 'mattress' },
-      { name: '妆台', slug: 'vanity' },
-    ],
-  },
-  {
-    name: '餐厅', slug: 'dining-room',
-    desc: '岩板餐桌 · 舒适餐椅 · 收纳柜',
-    gradient: 'from-emerald-400 to-emerald-600',
-    children: [
-      { name: '餐桌', slug: 'dining-table' },
-      { name: '餐椅', slug: 'dining-chair' },
-      { name: '餐边柜', slug: 'sideboard' },
-    ],
-  },
-  {
-    name: '书房', slug: 'study',
-    desc: '实木书桌 · 大容量书柜 · 人体工学椅',
-    gradient: 'from-violet-400 to-violet-600',
-    children: [
-      { name: '书桌', slug: 'desk' },
-      { name: '书柜', slug: 'bookcase' },
-      { name: '转椅', slug: 'office-chair' },
-    ],
-  },
-]
+const categoryTabs = computed(() => ['全部', ...categories.value.map(category => category.name)])
 
-// 楼层商品数据：按分类加载
-const floorProducts = ref<Record<string, any[]>>({})
-if (import.meta.client) {
-  // 先等分类数据加载，然后按分类ID获取商品
-  const loadFloorProducts = () => {
-    categoryFloors.forEach(floor => {
-      const cat = categories.value.find(c => c.slug === floor.slug)
-      if (cat) {
-        get('/v1/products', { page: 1, pageSize: 8, categoryId: cat.id }).then((res: any) => {
-          if (res?.data?.list) {
-            floorProducts.value[floor.slug] = res.data.list
-          }
-        }).catch(() => {})
-      }
+const featuredItems = computed(() => {
+  const visibleCategories = activeStyle.value === '全部'
+    ? categories.value
+    : categories.value.filter(category => category.name === activeStyle.value)
+
+  return visibleCategories.flatMap(category =>
+    category.children.map(child => ({
+      ...child,
+      parentName: category.name,
+      parentSlug: category.slug,
+    })),
+  ).slice(0, 4)
+})
+
+const spaceCategories = computed(() =>
+  categories.value.filter(category =>
+    ['cabinet-custom', 'bath-hardware', 'appliances', 'building-materials', 'lighting'].includes(category.slug),
+  ),
+)
+
+const heroBanners = computed<HomeBanner[]>(() => {
+  const housekeeping = categories.value.find(category => category.slug === 'housekeeping')
+  const ruralSupport = categories.value.find(category => category.slug === 'rural-support')
+  const middleCategories = spaceCategories.value
+  const banners: HomeBanner[] = []
+
+  if (housekeeping?.image) {
+    banners.push({
+      label: '分类',
+      title: housekeeping.name,
+      image: housekeeping.image,
+      link: `/category/${housekeeping.slug}`,
+      tags: housekeeping.children.map(child => child.name),
     })
   }
-  // 延迟一点加载，等 categories 数据就绪
-  watch(categories, (val) => {
-    if (val.length) loadFloorProducts()
-  }, { immediate: true })
-}
 
-const services = [
-  { icon: '🛡️', title: '正品保障', desc: '100% 品牌授权' },
-  { icon: '🚚', title: '全国配送', desc: '免费送货上门' },
-  { icon: '🔧', title: '免费安装', desc: '专业师傅上门' },
-  { icon: '🔄', title: '售后无忧', desc: '7天无理由退换' },
-]
+  if (middleCategories.length && middleCategories[0]?.image) {
+    banners.push({
+      label: '分类',
+      title: middleCategories.map(category => category.name).join(' / '),
+      image: middleCategories[0].image!,
+      link: `/category/${middleCategories[0].slug}`,
+      tags: middleCategories.map(category => category.name),
+    })
+  }
 
-// Banner 自动轮播
+  if (ruralSupport?.image) {
+    banners.push({
+      label: '分类',
+      title: ruralSupport.name,
+      image: ruralSupport.image,
+      link: `/category/${ruralSupport.slug}`,
+      tags: ruralSupport.children.map(child => child.name),
+    })
+  }
+
+  return banners
+})
+
+const carouselCategories = computed(() => [...categories.value, ...categories.value])
+
+watch(heroBanners, (banners) => {
+  if (!banners.length) {
+    currentBanner.value = 0
+    return
+  }
+
+  if (currentBanner.value >= banners.length) {
+    currentBanner.value = 0
+  }
+})
+
 let timer: ReturnType<typeof setInterval> | null = null
+
 onMounted(() => {
   timer = setInterval(() => {
-    currentBanner.value = (currentBanner.value + 1) % (banners.value.length || 1)
+    if (!heroBanners.value.length) return
+    currentBanner.value = (currentBanner.value + 1) % heroBanners.value.length
   }, 4000)
 })
+
 onUnmounted(() => {
   if (timer) clearInterval(timer)
 })
@@ -387,7 +338,7 @@ onUnmounted(() => {
 }
 
 .animate-marquee {
-  animation: marquee 20s linear infinite;
+  animation: marquee 28s linear infinite;
 }
 
 .animate-marquee:hover {

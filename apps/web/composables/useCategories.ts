@@ -3,6 +3,7 @@ export interface CategoryChild {
   name: string
   slug: string
   icon?: string
+  image?: string
 }
 
 export interface CategoryItem {
@@ -10,98 +11,247 @@ export interface CategoryItem {
   name: string
   slug: string
   icon?: string
+  image?: string
   children: CategoryChild[]
 }
 
 const categoriesData: CategoryItem[] = [
   {
-    name: '客厅', slug: 'living-room', icon: '🛋️',
+    name: '家政服务',
+    slug: 'housekeeping',
+    icon: '🧹',
+    image: 'https://images.unsplash.com/photo-1758273705438-2bb9e0eb21b7?fm=jpg&q=60&w=1600&auto=format&fit=crop&ixlib=rb-4.1.0',
     children: [
-      { name: '沙发', slug: 'sofa' },
-      { name: '茶几', slug: 'coffee-table' },
-      { name: '电视柜', slug: 'tv-cabinet' },
-      { name: '休闲椅', slug: 'lounge-chair' },
+      {
+        name: '开荒保洁',
+        slug: 'post-renovation-cleaning',
+        image: 'https://images.unsplash.com/photo-1758273705438-2bb9e0eb21b7?auto=format&fit=crop&w=1600&q=80',
+      },
+      {
+        name: '精保洁',
+        slug: 'fine-cleaning',
+        image: 'https://plus.unsplash.com/premium_photo-1663011218145-c1d0c3ba3542?auto=format&fit=crop&w=1600&q=80',
+      },
+      {
+        name: '家政钟点工',
+        slug: 'hourly-helper',
+        image: 'https://www.curamaids.com/wp-content/uploads/2025/11/Professional-Post-Construction-Cleaning-Cura-Maids-Raleigh-Home-1024x474.jpg',
+      },
+      {
+        name: '收纳师',
+        slug: 'home-organizer',
+        image: '/category-images/home-organizer.png',
+      },
+      {
+        name: '厨娘',
+        slug: 'home-cook',
+        image: 'https://images.pexels.com/photos/4910234/pexels-photo-4910234.jpeg',
+      },
+      {
+        name: '月嫂',
+        slug: 'maternity-matron',
+        image: '/category-images/maternity-matron.png',
+      },
     ],
   },
   {
-    name: '卧室', slug: 'bedroom', icon: '🛏️',
+    name: '柜体定制',
+    slug: 'cabinet-custom',
+    icon: '🪵',
+    image: 'https://images.unsplash.com/photo-1672137233327-37b0c1049e77?fm=jpg&q=60&w=1600&auto=format&fit=crop&ixlib=rb-4.1.0',
     children: [
-      { name: '床', slug: 'bed' },
-      { name: '床头柜', slug: 'nightstand' },
-      { name: '床垫', slug: 'mattress' },
-      { name: '妆台/妆凳', slug: 'vanity' },
+      {
+        name: '全屋定制',
+        slug: 'whole-house-cabinet',
+        image: 'https://images.unsplash.com/photo-1672137233327-37b0c1049e77?auto=format&fit=crop&w=1600&q=80',
+      },
+      {
+        name: '衣柜定制',
+        slug: 'wardrobe-custom',
+        image: 'https://www.johnlouishome.com/cdn/shop/files/solid-wood-closet-organizer-with-6-drawers-shaker-closet-organizers-john-louis-home-jlh-350sh-w-295358.jpg?v=1737152123',
+      },
+      {
+        name: '橱柜定制',
+        slug: 'kitchen-cabinet-custom',
+        image: 'https://georgecabinetry.com/wp-content/uploads/2025/07/white-light-luxury-rustic-kitchen-cabinets.webp',
+      },
+      {
+        name: '阳台柜定制',
+        slug: 'balcony-cabinet-custom',
+        image: 'https://www.reboncabinets.com/Content/uploads/2022211506/202204201532237417d0d3902f46e6ba3a9efab1a2765c.jpg',
+      },
     ],
   },
   {
-    name: '餐厅', slug: 'dining-room', icon: '🍽️',
+    name: '卫浴五金',
+    slug: 'bath-hardware',
+    icon: '🚿',
+    image: 'https://images.unsplash.com/photo-1718894070021-5d24d72a5437?fm=jpg&q=60&w=1600&auto=format&fit=crop&ixlib=rb-4.1.0',
     children: [
-      { name: '餐桌', slug: 'dining-table' },
-      { name: '餐椅', slug: 'dining-chair' },
-      { name: '餐边柜', slug: 'sideboard' },
-      { name: '岛台', slug: 'kitchen-island' },
+      {
+        name: '花洒系统',
+        slug: 'shower-system',
+        image: 'https://assets.hansgrohe.com/celum/web/pulsify-s_showerpipe-chrome_light-bathroom-ambiance_4x3.jpg',
+      },
+      {
+        name: '面盆龙头',
+        slug: 'basin-faucet',
+        image: 'https://m.media-amazon.com/images/I/61kHhun04CL._AC_SL1500_.jpg',
+      },
+      {
+        name: '地漏下水',
+        slug: 'floor-drain',
+        image: 'https://images.signaturehardware.com/i/signaturehdwr/wetroom-accessbility?w=700&fmt=auto',
+      },
+      {
+        name: '毛巾挂件',
+        slug: 'bathroom-rack',
+        image: 'https://m.media-amazon.com/images/I/91M51hG54QL._AC_UF1000,1000_QL80_.jpg',
+      },
     ],
   },
   {
-    name: '儿童房', slug: 'kids-room', icon: '🧒',
+    name: '电器',
+    slug: 'appliances',
+    icon: '🔌',
+    image: 'https://images.unsplash.com/photo-1588854337115-1c67d9247e4d?fm=jpg&q=60&w=1600&auto=format&fit=crop&ixlib=rb-4.1.0',
     children: [
-      { name: '儿童床', slug: 'kids-bed' },
-      { name: '儿童桌', slug: 'kids-desk' },
-      { name: '儿童床头柜', slug: 'kids-nightstand' },
+      {
+        name: '冰箱',
+        slug: 'refrigerator',
+        image: 'https://images.unsplash.com/photo-1588854337115-1c67d9247e4d?auto=format&fit=crop&w=1600&q=80',
+      },
+      {
+        name: '洗衣机',
+        slug: 'washing-machine',
+        image: 'https://pisces.bbystatic.com/image2/BestBuy_US/Gallery/inspiration_sol-68526_DER_sm_update-178082.jpg',
+      },
+      {
+        name: '油烟机',
+        slug: 'range-hood',
+        image: 'https://images.squarespace-cdn.com/content/v1/59f343eb7131a56f40ad24ab/1706713873397-CH7RWHLHZEIUU91EHAOR/chefs-kitchen-design-18.jpg',
+      },
+      {
+        name: '热水器',
+        slug: 'water-heater',
+        image: '/category-images/water-heater.png',
+      },
     ],
   },
   {
-    name: '书房', slug: 'study', icon: '📚',
+    name: '建材',
+    slug: 'building-materials',
+    icon: '🧱',
+    image: 'https://images.unsplash.com/photo-1750500388486-dcc62e0690d4?fm=jpg&q=60&w=1600&auto=format&fit=crop&ixlib=rb-4.1.0',
     children: [
-      { name: '书桌', slug: 'desk' },
-      { name: '书柜', slug: 'bookcase' },
-      { name: '茶台', slug: 'tea-table' },
-      { name: '书椅/转椅', slug: 'office-chair' },
+      {
+        name: '瓷砖',
+        slug: 'tiles',
+        image: 'https://sampco.com/wp-content/uploads/2024/04/MSI-Image-1024x675.png',
+      },
+      {
+        name: '地板',
+        slug: 'flooring',
+        image: 'https://images.squarespace-cdn.com/content/v1/5e3caecda487855c0d71e400/1619622069912-C94I58XGP01P28RXG2KX/Edited-1.jpg?format=original',
+      },
+      {
+        name: '板材',
+        slug: 'boards',
+        image: 'https://i.pinimg.com/originals/30/cb/06/30cb067e112893f5a379f4a9f012d0f6.jpg',
+      },
+      {
+        name: '涂料',
+        slug: 'coatings',
+        image: '/category-images/coatings.png',
+      },
     ],
   },
   {
-    name: '灯饰', slug: 'lighting', icon: '💡',
+    name: '灯饰',
+    slug: 'lighting',
+    icon: '💡',
+    image: 'https://images.unsplash.com/photo-1676103391619-8de758b28b53?fm=jpg&q=60&w=1600&auto=format&fit=crop&ixlib=rb-4.1.0',
     children: [
-      { name: '吊灯', slug: 'chandelier' },
-      { name: '吸顶灯', slug: 'ceiling-light' },
-      { name: 'LED筒/射灯', slug: 'led-spotlight' },
+      {
+        name: '吊灯',
+        slug: 'chandelier',
+        image: 'https://blog.1800lighting.com/wp-content/uploads/2022/03/TL_Lody_APP2_700LDY1820R-LED930-3-scaled.jpeg',
+      },
+      {
+        name: '筒灯',
+        slug: 'downlight',
+        image: 'https://www.shine.lighting/products/wp-content/uploads/2022/06/Multi-head-Recessed-Lights.jpg',
+      },
+      {
+        name: '壁灯',
+        slug: 'wall-lamp',
+        image: 'https://www.shine.lighting/products/wp-content/uploads/2022/06/Interior-Wall-Lights-for-Ambient-Lighting.jpg',
+      },
+      {
+        name: '氛围灯',
+        slug: 'ambient-light',
+        image: 'https://hampshirelight.imgix.net/storage/uploads/case-studies/unique-modern-house/floating/coffer1a.jpg?w=1300&fit=crop&crop=edges,faces&q=90&auto=format',
+      },
     ],
   },
   {
-    name: '卫浴', slug: 'bathroom', icon: '🚿',
+    name: '助农帮扶',
+    slug: 'rural-support',
+    icon: '🌾',
+    image: 'https://images.unsplash.com/photo-1486328228599-85db4443971f?fm=jpg&q=60&w=1600&auto=format&fit=crop&ixlib=rb-4.1.0',
     children: [
-      { name: '浴室柜', slug: 'bathroom-cabinet' },
-      { name: '马桶', slug: 'toilet' },
-      { name: '花洒', slug: 'shower' },
-      { name: '龙头', slug: 'faucet' },
-    ],
-  },
-  {
-    name: '家饰家纺', slug: 'decor', icon: '🎨',
-    children: [
-      { name: '装饰字画', slug: 'wall-art' },
-      { name: '装饰摆件', slug: 'ornament' },
-      { name: '床品', slug: 'bedding' },
-    ],
-  },
-  {
-    name: '建材电器', slug: 'material', icon: '🔌',
-    children: [
-      { name: '地板', slug: 'flooring' },
-      { name: '烟灶套装', slug: 'range-hood' },
-      { name: '厨盆水槽', slug: 'kitchen-sink' },
+      {
+        name: '产地直连',
+        slug: 'farm-produce',
+        image: 'https://www.agrifarming.in/wp-content/uploads/Cooperatives-in-Agriculture_-Empowering-Farmers-and-Strengthening-Local-Economies5.jpg',
+      },
+      {
+        name: '乡村共建',
+        slug: 'rural-revitalization',
+        image: 'https://vir.com.vn/stores/news_dataimages/hung/102019/24/10/croped/rural-economy-grows-steadily.jpg',
+      },
+      {
+        name: '公益采购',
+        slug: 'public-welfare-procurement',
+        image: 'https://www.transportify.com.ph/wp-content/uploads/sites/5/2023/04/agriculture-supply-chain-challenges-and-opportunities-in-the-philippines-og.jpg',
+      },
+      {
+        name: '企业责任',
+        slug: 'corporate-responsibility',
+        image: 'https://www.bivatec.com/storage/canvas/images/PPtlPjXdsTRusXC3jcdm4XgBrXXxiu2anqR8dpFH.jpg',
+      },
     ],
   },
 ]
 
-export function useCategories() {
-  const categories = ref<CategoryItem[]>(categoriesData)
+function mergeCategories(remoteCategories: any[] = []): CategoryItem[] {
+  return categoriesData.map((category) => {
+    const remoteCategory = remoteCategories.find((item: any) => item.slug === category.slug)
 
-  // 异步从 API 获取分类树（不阻塞渲染，静态数据作为降级）
+    return {
+      ...category,
+      id: remoteCategory?.id,
+      icon: remoteCategory?.icon || category.icon,
+      children: category.children.map((child) => {
+        const remoteChild = remoteCategory?.children?.find((item: any) => item.slug === child.slug)
+        return {
+          ...child,
+          id: remoteChild?.id,
+          icon: remoteChild?.icon || child.icon,
+        }
+      }),
+    }
+  })
+}
+
+export function useCategories() {
+  const categories = ref<CategoryItem[]>(mergeCategories())
+
   if (import.meta.client) {
     const { get } = useApi()
     get('/v1/categories/tree').then((res: any) => {
       if (res?.data?.length) {
-        categories.value = res.data
+        categories.value = mergeCategories(res.data)
       }
     }).catch(() => {})
   }
