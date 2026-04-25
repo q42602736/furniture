@@ -124,7 +124,7 @@ const categoriesData: CategoryItem[] = [
       {
         name: '洗衣机',
         slug: 'washing-machine',
-        image: 'https://pisces.bbystatic.com/image2/BestBuy_US/Gallery/inspiration_sol-68526_DER_sm_update-178082.jpg',
+        image: '/category-images/washing-machine.png',
       },
       {
         name: '油烟机',

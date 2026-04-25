@@ -3,7 +3,7 @@
     <!-- 顶部工具栏 -->
     <div class="bg-[#333] text-xs">
       <div class="max-w-[1200px] mx-auto px-4 flex items-center justify-between h-8 text-gray-300">
-        <span>欢迎来到美家优选！正品保障 · 全国配送 · 售后无忧</span>
+        <span>欢迎来到美家优选！服务到家 · 精选配套 · 售后无忧</span>
         <div class="flex items-center gap-4">
           <template v-if="userStore.isLoggedIn">
             <NuxtLink to="/user" class="hover:text-white transition">{{ userStore.user?.nickname || '我的账户' }}</NuxtLink>
@@ -54,7 +54,7 @@
             <input
               v-model="searchKeyword"
               type="text"
-              placeholder="搜索家具、建材、家饰..."
+              placeholder="搜索家政服务、柜体定制、建材灯饰..."
               class="flex-1 h-10 border-2 border-orange-500 border-r-0 rounded-l px-4 text-sm focus:outline-none"
               @keyup.enter="handleSearch"
             />
@@ -81,85 +81,14 @@
       </div>
     </div>
 
-    <!-- 分类导航 + 频道 -->
-    <div class="bg-white shadow-sm relative z-40">
-      <div class="max-w-[1200px] mx-auto px-4 flex items-stretch h-[42px]">
-        <!-- 全部分类 -->
-        <div
-          class="relative w-[210px] shrink-0"
-          @mouseenter="showCategoryPanel = true"
-          @mouseleave="showCategoryPanel = false"
-        >
-          <div class="bg-orange-500 text-white h-full flex items-center justify-center gap-2 cursor-pointer text-sm font-medium">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
-            全部商品分类
-          </div>
-
-          <!-- 分类悬浮面板 -->
-          <div
-            v-show="showCategoryPanel"
-            class="absolute top-full left-0 w-[210px] bg-[#3d3d3f] z-50 shadow-xl"
-          >
-            <div
-              v-for="cat in categories"
-              :key="cat.slug"
-              class="group relative"
-              @mouseenter="activeCategorySlug = cat.slug"
-              @mouseleave="activeCategorySlug = ''"
-            >
-              <NuxtLink
-                :to="`/category/${cat.slug}`"
-                class="flex items-center justify-between px-4 py-2.5 text-gray-200 text-sm hover:bg-[#555] hover:text-white transition"
-              >
-                <span>{{ cat.name }}</span>
-                <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                </svg>
-              </NuxtLink>
-
-              <!-- 二级分类弹出 -->
-              <div
-                v-if="activeCategorySlug === cat.slug && cat.children?.length"
-                class="absolute left-[210px] top-0 bg-white shadow-xl border border-gray-100 rounded-r min-w-[400px] p-6 z-50"
-              >
-                <div class="flex flex-wrap gap-x-6 gap-y-2">
-                  <NuxtLink
-                    v-for="sub in cat.children"
-                    :key="sub.slug"
-                    :to="`/category/${sub.slug}`"
-                    class="text-sm text-gray-600 hover:text-orange-500 transition"
-                  >
-                    {{ sub.name }}
-                  </NuxtLink>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 频道导航 -->
-        <nav class="flex items-center gap-6 ml-6 text-sm">
-          <NuxtLink to="/" class="text-gray-700 hover:text-orange-500 font-medium transition">首页</NuxtLink>
-          <NuxtLink to="/brand" class="text-gray-700 hover:text-orange-500 transition">品牌馆</NuxtLink>
-          <NuxtLink to="/new" class="text-gray-700 hover:text-orange-500 transition">新品上市</NuxtLink>
-          <NuxtLink to="/sale" class="text-gray-700 hover:text-orange-500 transition">特惠专区</NuxtLink>
-          <NuxtLink to="/buyer-show" class="text-gray-700 hover:text-orange-500 transition">买家秀</NuxtLink>
-        </nav>
-      </div>
-    </div>
   </header>
 </template>
 
 <script setup lang="ts">
 const searchKeyword = ref('')
-const showCategoryPanel = ref(false)
-const activeCategorySlug = ref('')
 
-const hotWords = ['意式极简', '奶油风沙发', '实木床', '岩板餐桌', '智能马桶']
+const hotWords = ['开荒保洁', '柜体定制', '卫浴五金', '建材', '助农帮扶']
 
-const { categories } = useCategories()
 const userStore = useUserStore()
 
 // 初始化时加载用户信息

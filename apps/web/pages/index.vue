@@ -166,7 +166,12 @@
         <article
           v-for="category in showcaseCategories"
           :key="category.slug"
-          class="group relative overflow-hidden rounded-[28px] min-h-[360px] border border-black/5 shadow-sm"
+          class="group relative overflow-hidden rounded-[28px] min-h-[360px] border border-black/5 shadow-sm cursor-pointer"
+          role="link"
+          tabindex="0"
+          @click="openCategory(category.slug)"
+          @keydown.enter="openCategory(category.slug)"
+          @keydown.space.prevent="openCategory(category.slug)"
         >
           <img
             v-if="category.image"
@@ -191,6 +196,7 @@
               <NuxtLink
                 :to="`/category/${category.slug}`"
                 class="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs text-white hover:bg-white/15 transition"
+                @click.stop
               >
                 查看
               </NuxtLink>
@@ -202,6 +208,7 @@
                 :key="sub.slug"
                 :to="`/category/${sub.slug}`"
                 class="overflow-hidden rounded-2xl border border-white/15 bg-black/15 backdrop-blur-sm"
+                @click.stop
               >
                 <div class="h-20 bg-white/10">
                   <img
@@ -236,6 +243,10 @@ const activeStyle = ref('全部')
 
 function onImgError(e: Event) {
   (e.target as HTMLImageElement).style.display = 'none'
+}
+
+function openCategory(slug: string) {
+  navigateTo(`/category/${slug}`)
 }
 
 const { categories } = useCategories()
