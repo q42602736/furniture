@@ -60,7 +60,7 @@
             <template v-if="heroBanners.length">
               <div
                 v-for="(banner, idx) in heroBanners"
-                :key="banner.title"
+                :key="banner.link"
                 :class="[
                   'absolute inset-0 transition-opacity duration-700',
                   idx === currentBanner ? 'opacity-100 z-10' : 'opacity-0 z-0',
@@ -280,6 +280,34 @@ interface HomeBanner {
 const currentBanner = ref(0)
 const activeStyle = ref('全部')
 const activeSidebarSlug = ref('')
+const bannerSeed = useState<number>('home-banner-seed', () => Math.floor(Math.random() * 2147483647))
+
+function createSeededRandom(seed: number) {
+  let value = seed % 2147483647
+
+  if (value <= 0) {
+    value += 2147483646
+  }
+
+  return () => {
+    value = (value * 16807) % 2147483647
+    return (value - 1) / 2147483646
+  }
+}
+
+function shuffleWithSeed<T>(items: T[], seed: number) {
+  const random = createSeededRandom(seed)
+  const shuffled = [...items]
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(random() * (index + 1))
+    const currentItem = shuffled[index]
+    shuffled[index] = shuffled[randomIndex]
+    shuffled[randomIndex] = currentItem
+  }
+
+  return shuffled
+}
 
 function onImgError(e: Event) {
   (e.target as HTMLImageElement).style.display = 'none'
@@ -304,6 +332,16 @@ const featuredItems = computed(() => {
     ? categories.value
     : categories.value.filter(category => category.name === activeStyle.value)
 
+  if (activeStyle.value === '全部') {
+    return visibleCategories.slice(0, 2).flatMap(category =>
+      category.children.slice(0, 2).map(child => ({
+        ...child,
+        parentName: category.name,
+        parentSlug: category.slug,
+      })),
+    ).slice(0, 4)
+  }
+
   return visibleCategories.flatMap(category =>
     category.children.map(child => ({
       ...child,
@@ -313,54 +351,48 @@ const featuredItems = computed(() => {
   ).slice(0, 4)
 })
 
-const spaceCategories = computed(() =>
-  categories.value.filter(category =>
-    ['cabinet-custom', 'bath-hardware', 'appliances', 'building-materials', 'lighting', 'interior-design', 'township-self-build'].includes(category.slug),
-  ),
+const heroBannerCandidates = computed<HomeBanner[]>(() =>
+  categories.value.flatMap((category) => {
+    const banners: HomeBanner[] = []
+
+    if (category.image) {
+      banners.push({
+        label: '分类',
+        title: category.name,
+        image: category.image,
+        link: `/category/${category.slug}`,
+        tags: category.children.slice(0, 4).map(child => child.name),
+      })
+    }
+
+    category.children
+      .filter(child => Boolean(child.image))
+      .slice(0, 4)
+      .forEach((child) => {
+        const siblingTags = category.children
+          .filter(item => item.slug !== child.slug)
+          .slice(0, 2)
+          .map(item => item.name)
+
+        banners.push({
+          label: category.name,
+          title: `${category.name} · ${child.name}`,
+          image: child.image!,
+          link: `/category/${child.slug}`,
+          tags: [child.name, ...siblingTags].slice(0, 4),
+        })
+      })
+
+    return banners
+  }),
 )
 
 const heroBanners = computed<HomeBanner[]>(() => {
-  const housekeeping = categories.value.find(category => category.slug === 'housekeeping')
-  const ruralSupport = categories.value.find(category => category.slug === 'rural-support')
-  const middleCategories = spaceCategories.value
-  const banners: HomeBanner[] = []
+  const dedupedBanners = heroBannerCandidates.value.filter((banner, index, list) =>
+    list.findIndex(item => item.image === banner.image) === index,
+  )
 
-  if (housekeeping?.image) {
-    banners.push({
-      label: '分类',
-      title: housekeeping.name,
-      image: housekeeping.image,
-      link: `/category/${housekeeping.slug}`,
-      tags: housekeeping.children.map(child => child.name),
-    })
-  }
-
-  if (middleCategories.length && middleCategories[0]?.image) {
-    const middleCategoryTitle = middleCategories
-      .map(category => category.name)
-      .slice(0, 4)
-      .join(' / ')
-
-    banners.push({
-      label: '分类',
-      title: middleCategories.length > 4 ? `${middleCategoryTitle} 等` : middleCategoryTitle,
-      image: middleCategories[0].image!,
-      link: `/category/${middleCategories[0].slug}`,
-      tags: middleCategories.map(category => category.name),
-    })
-  }
-
-  if (ruralSupport?.image) {
-    banners.push({
-      label: '分类',
-      title: ruralSupport.name,
-      image: ruralSupport.image,
-      link: `/category/${ruralSupport.slug}`,
-      tags: ruralSupport.children.map(child => child.name),
-    })
-  }
-
-  return banners
+  return shuffleWithSeed(dedupedBanners, bannerSeed.value).slice(0, 6)
 })
 
 const carouselCategories = computed(() => [...categories.value, ...categories.value])

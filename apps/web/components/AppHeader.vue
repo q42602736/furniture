@@ -3,7 +3,7 @@
     <!-- 顶部工具栏 -->
     <div class="bg-[#333] text-xs">
       <div class="max-w-[1200px] mx-auto px-4 flex items-center justify-between h-8 text-gray-300">
-        <span>欢迎来到美家优选！服务到家 · 精选配套 · 售后无忧</span>
+        <span>欢迎来到美家优选！家政到家 · 设计装修 · 自建房规划 · 助农展示</span>
         <div class="flex items-center gap-4">
           <template v-if="userStore.isLoggedIn">
             <NuxtLink to="/user" class="hover:text-white transition">{{ userStore.user?.nickname || '我的账户' }}</NuxtLink>

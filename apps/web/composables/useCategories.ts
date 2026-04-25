@@ -195,7 +195,7 @@ const categoriesData: CategoryItem[] = [
     ],
   },
   {
-    name: '装修设计',
+    name: '工装·家装设计',
     slug: 'interior-design',
     icon: '🎨',
     image: 'https://images.pexels.com/photos/20390760/pexels-photo-20390760.jpeg?auto=compress&cs=tinysrgb&w=1600',
@@ -280,8 +280,26 @@ const categoriesData: CategoryItem[] = [
   },
 ]
 
+const prioritizedCategorySlugs = ['interior-design', 'township-self-build']
+const categoryBaseOrder = new Map(categoriesData.map((category, index) => [category.slug, index]))
+
+function sortTopCategories(items: CategoryItem[]): CategoryItem[] {
+  const priorityOrder = new Map(prioritizedCategorySlugs.map((slug, index) => [slug, index]))
+
+  return [...items].sort((left, right) => {
+    const leftOrder = priorityOrder.has(left.slug)
+      ? priorityOrder.get(left.slug)!
+      : prioritizedCategorySlugs.length + (categoryBaseOrder.get(left.slug) ?? 999)
+    const rightOrder = priorityOrder.has(right.slug)
+      ? priorityOrder.get(right.slug)!
+      : prioritizedCategorySlugs.length + (categoryBaseOrder.get(right.slug) ?? 999)
+
+    return leftOrder - rightOrder
+  })
+}
+
 function mergeCategories(remoteCategories: any[] = []): CategoryItem[] {
-  return categoriesData.map((category) => {
+  return sortTopCategories(categoriesData.map((category) => {
     const remoteCategory = remoteCategories.find((item: any) => item.slug === category.slug)
 
     return {
@@ -297,7 +315,7 @@ function mergeCategories(remoteCategories: any[] = []): CategoryItem[] {
         }
       }),
     }
-  })
+  }))
 }
 
 export function useCategories() {
